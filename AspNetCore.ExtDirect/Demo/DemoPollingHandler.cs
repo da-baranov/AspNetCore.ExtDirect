@@ -1,0 +1,26 @@
+﻿using AspNetCore.ExtDirect.Meta;
+using System;
+using System.Collections.Generic;
+using System.Numerics;
+
+namespace AspNetCore.ExtDirect.Demo
+{
+    public class DemoPollingHandler : IExtDirectPollingEventSource
+    {
+        public IEnumerable<PollResponse> GetEvents()
+        {
+            var r = new Random();
+
+            var a = Convert.ToInt32(r.NextDouble() * 10000);
+            var b = Convert.ToInt32(r.NextDouble() * 10000);
+            BigInteger c = a * b;
+            var data = $"{a} * {b} = {c}";
+            var evt = new PollResponse
+            {
+                Name = "ondata",
+                Data = data
+            };
+            yield return evt;
+        }
+    }
+}
