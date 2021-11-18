@@ -1,13 +1,10 @@
 ﻿using AspNetCore.ExtDirect.Meta;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect
@@ -18,18 +15,20 @@ namespace AspNetCore.ExtDirect
     internal sealed class ExtDirectActionHandler
     {
         private readonly RemotingRequestBatch _batch;
-        private List<object> _result;
+        private readonly IStringLocalizer _localizer;
+        private readonly IStringLocalizerFactory _localizerFactory;
+        private readonly string _providerName;
+        private readonly ExtDirectHandlerRepository _repository;
         private readonly IServiceProvider _serviceProvider;
         private readonly ExtDirectTransactionService _transactionService;
-        private readonly ExtDirectHandlerRepository _repository;
-        private readonly IStringLocalizerFactory _localizerFactory;
-        private readonly IStringLocalizer _localizer;
+        private List<object> _result;
 
-        public ExtDirectActionHandler(IServiceProvider serviceProvider, RemotingRequestBatch batch)
+        public ExtDirectActionHandler(IServiceProvider serviceProvider, string providerName, RemotingRequestBatch batch)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _providerName = providerName;
             _batch = batch ?? throw new ArgumentNullException(nameof(batch));
-            
+
             _repository = serviceProvider.GetService<ExtDirectHandlerRepository>();
             _transactionService = serviceProvider.GetService<ExtDirectTransactionService>();
 
@@ -40,75 +39,8 @@ namespace AspNetCore.ExtDirect
         public async Task<List<object>> ExecuteAsync()
         {
             await ValidateBatchAsync();
-            await ProcessBatchAsync();
+            await ProcessBatchAsync(_providerName);
             return _result;
-        }
-
-        /// <summary>
-        /// Executes Ext Direct batch
-        /// </summary>
-        /// <returns>Nothing</returns>
-        private async Task ProcessBatchAsync()
-        {
-            var transactionId = Guid.NewGuid().ToString("D");
-            _transactionService.FireTransactionBegin(transactionId);
-
-            try
-            {
-                _result = new List<object>();
-                foreach (var batchItem in _batch)
-                {
-                    var rv = await ProcessSingleBatchItemAsync(batchItem);
-                    _result.Add(rv);
-                }
-                _transactionService.FireTransactionCommit(transactionId);
-            }
-            catch (Exception ex)
-            {
-                _transactionService.FireTransactionRollback(transactionId, ex);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Executes a single Ext Direct batch item
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns>RemotingResponse or RemotingException</returns>
-        private async Task<object> ProcessSingleBatchItemAsync(RemotingRequest request)
-        {
-            try
-            {
-                // Looking for an Action handler in repository
-                _repository.FindExtDirectActionAndMethod(request.Action, request.Method, out Type type, out MethodInfo methodInfo);
-
-                // Create an instance of handler service using DI
-                var instance = ActivatorUtilities.CreateInstance(_serviceProvider, type);
-
-                // Invoke handler method
-                var data = await InvokeAsync(request, instance, methodInfo, request.Data);
-
-                var response = new RemotingResponse(request, data);
-                return await Task.FromResult(response);
-            }
-            catch (TargetInvocationException tex)
-            {
-                if (tex.InnerException != null)
-                {
-                    var ex = new RemotingException(request, tex.InnerException);
-                    return await Task.FromResult(ex);
-                }
-                else
-                {
-                    var ex = new RemotingException(request, tex);
-                    return await Task.FromResult(ex);
-                }
-            }
-            catch (Exception ex)
-            {
-                var exception = new RemotingException(ex, request.Action, request.Method, request.Tid);
-                return await Task.FromResult(exception);
-            }
         }
 
         /// <summary>
@@ -199,6 +131,72 @@ namespace AspNetCore.ExtDirect
             }
         }
 
+        /// <summary>
+        /// Executes Ext Direct batch
+        /// </summary>
+        /// <returns>Nothing</returns>
+        private async Task ProcessBatchAsync(string providerName)
+        {
+            var transactionId = Guid.NewGuid().ToString("D");
+            _transactionService.FireTransactionBegin(transactionId);
+
+            try
+            {
+                _result = new List<object>();
+                foreach (var batchItem in _batch)
+                {
+                    var rv = await ProcessSingleBatchItemAsync(providerName, batchItem);
+                    _result.Add(rv);
+                }
+                _transactionService.FireTransactionCommit(transactionId);
+            }
+            catch (Exception ex)
+            {
+                _transactionService.FireTransactionRollback(transactionId, ex);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Executes a single Ext Direct batch item
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns>RemotingResponse or RemotingException</returns>
+        private async Task<object> ProcessSingleBatchItemAsync(string providerName, RemotingRequest request)
+        {
+            try
+            {
+                // Looking for an Action handler in repository
+                _repository.FindExtDirectActionAndMethod(providerName, request.Action, request.Method, out Type type, out MethodInfo methodInfo);
+
+                // Create an instance of handler service using DI
+                var instance = ActivatorUtilities.CreateInstance(_serviceProvider, type);
+
+                // Invoke handler method
+                var data = await InvokeAsync(request, instance, methodInfo, request.Data);
+
+                var response = new RemotingResponse(request, data);
+                return await Task.FromResult(response);
+            }
+            catch (TargetInvocationException tex)
+            {
+                if (tex.InnerException != null)
+                {
+                    var ex = new RemotingException(request, tex.InnerException);
+                    return await Task.FromResult(ex);
+                }
+                else
+                {
+                    var ex = new RemotingException(request, tex);
+                    return await Task.FromResult(ex);
+                }
+            }
+            catch (Exception ex)
+            {
+                var exception = new RemotingException(ex, request.Action, request.Method, request.Tid);
+                return await Task.FromResult(exception);
+            }
+        }
         /// <summary>
         /// Performs simple batch validation
         /// </summary>

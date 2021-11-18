@@ -17,19 +17,27 @@
             quickTips: true,
 
             launch: function () {
-                // Add and immediately disable ExtDirect polling provider
+                // Add and immediately disable a polling provider
                 Ext.direct.Manager.addProvider({
                     id: 'DemoPolling',
                     type: 'polling',
-                    url: Ext.POLLING_API.url,
+                    url: Ext.POLLING_DATA_API.url,
                     interval: 1000,
                 });
-                const pollingProvider = Ext.direct.Manager.getProvider('DemoPolling');
-                pollingProvider.disconnect();
+                Ext.direct.Manager.getProvider('DemoPolling').disconnect();
+
+                // Add another polling provider
+                Ext.direct.Manager.addProvider({
+                    id: 'ChatPolling',
+                    type: 'polling',
+                    url: Ext.POLLING_CHAT_API.url,
+                    interval: 1000,
+                });
 
                 // Add remoting provider
                 Ext.direct.Manager.addProvider(Ext.REMOTING_API);
 
+                // Create main view
                 Ext.create("ExtDirectDemo.view.Index", {
                     renderTo: Ext.getBody()
                 });

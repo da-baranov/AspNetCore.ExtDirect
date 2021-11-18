@@ -18,12 +18,26 @@ namespace AspNetCore.ExtDirect.Demo
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
+
             services.AddExtDirect(options =>
             {
                 // TODO: modify options here
             });
-            services.AddExtDirectRemotingHandler<DemoActionHandler>("Demo");
-            services.AddExtDirectPollingHandler<DemoPollingHandler>();
+            services.AddExtDirectRemotingApi(options =>
+            {
+                options.AddActionHandler<DemoActionHandler>("Demo");
+                options.AddActionHandler<ChatHandler>("Chat");
+            });
+            services.AddExtDirectPollingApi(options =>
+            {
+                options.Name = "POLLING_DATA_API";
+                options.AddPollingHandler<DemoPollingHandler>();
+            });
+            services.AddExtDirectPollingApi(options =>
+            {
+                options.Name = "POLLING_CHAT_API";
+                options.AddPollingHandler<ChatHandler>();
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

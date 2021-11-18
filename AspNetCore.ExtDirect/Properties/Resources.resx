@@ -117,8 +117,20 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ERR_CANNOT_FIND_POLLING_HANDLER" xml:space="preserve">
+    <value>Failed to locate Polling events source provider "{0}". Consider to check the Ext Direct services configuration.</value>
+  </data>
   <data name="ERR_DUPLICATE_ACTION" xml:space="preserve">
     <value>ExtDirect action with name "{0}" has already been registered. Action names should be unique.</value>
+  </data>
+  <data name="ERR_DUPLICATE_POLLING_API_NAME" xml:space="preserve">
+    <value>Name of Polling API provider being registered must be unique ("{0}")</value>
+  </data>
+  <data name="ERR_DUPLICATE_REMOTING_API_NAME" xml:space="preserve">
+    <value>Name of Remoting API provider being registered must be unique ("{0}")</value>
+  </data>
+  <data name="ERR_EMPTY_POLLING_PROVIDER_NAME" xml:space="preserve">
+    <value>Invalid argument. Polling provider name is empty. Consider to check the Ext Direct services configuration.</value>
   </data>
   <data name="ERR_INVALID_ARG_TYPE" xml:space="preserve">
     <value>Invalid type of input Ext Direct action method arguments (action: {0}, method: {1}, type of method arguments: {2}). Arguments should be of type javascript Array, javascript Object, or scalar value (string, number, bool, or Date)</value>
@@ -128,5 +140,11 @@
   </data>
   <data name="ERR_INVALID_JSON" xml:space="preserve">
     <value>Invalid JSON input data.</value>
+  </data>
+  <data name="ERR_INVALID_PROVIDER_NAME" xml:space="preserve">
+    <value>Provider name "{0}" must be a valid JavaScript identifier.</value>
+  </data>
+  <data name="ERR_NOT_CONFIGURED" xml:space="preserve">
+    <value>AspNetCore.ExtDirect configuration error. Some configuration methods (IServiceProvider.AddExtDirect and other) should be called to configure the library.</value>
   </data>
 </root>

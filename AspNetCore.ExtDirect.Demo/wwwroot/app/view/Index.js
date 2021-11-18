@@ -6,7 +6,7 @@
     extend: "Ext.panel.Panel",
     controller: "IndexController",
     viewModel: "IndexViewModel",
-    title: "AspNetCore.ExtDirect Demo",
+    title: "ASPNETCORE.EXTDIRECT DEMO",
     layout: {
         type: "vbox"
     },
@@ -26,10 +26,7 @@
                 {
                     xtype: "textfield",
                     reference: "txtName",
-                    fieldLabel: "Your name",
-                    bind: {
-                        value: "{name}"
-                    }
+                    fieldLabel: "Your name"
                 },
                 {
                     xtype: "button",
@@ -180,7 +177,6 @@
                 },
                 {
                     xtype: "textfield",
-                    reference: "txtN3",
                     fieldLabel: "Last name",
                     labelAlign: "top",
                     decimalPrecision: 0,
@@ -228,5 +224,59 @@
                 }
             ]
         },
+
+        {
+            xtype: "container",
+            padding: 10,
+            html: "<strong>Here you can talk to yourself if you are getting bored</strong>"
+        },
+        {
+            xtype: "container",
+            padding: 10,
+            layout: {
+                type: "hbox",
+                align: "end"
+            },
+            items: [
+                {
+                    xtype: "textfield",
+                    fieldLabel: "Say something",
+                    bind: {
+                        value: "{chatMessage}"
+                    }
+                },
+                {
+                    xtype: "button",
+                    text: "Send",
+                    itemId: "cmdSendMessage"
+                }
+            ]
+        },
+        {
+            xtype: "container",
+            items: [
+                {
+                    xtype: "gridpanel",
+                    height: 300,
+                    width: 500,
+                    columns: [
+                        {
+                            text: "Date",
+                            flex: 1,
+                            dataIndex: "date",
+                            format: "c"
+                        },
+                        {
+                            text: "You said",
+                            flex: 3,
+                            dataIndex: "message"
+                        }
+                    ],
+                    bind: {
+                        store: "{chat}"
+                    }
+                }
+            ]
+        }
     ]
 });

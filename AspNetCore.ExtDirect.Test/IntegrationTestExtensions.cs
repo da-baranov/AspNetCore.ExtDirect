@@ -37,7 +37,7 @@ namespace AspNetCore.ExtDirect.Test
 
         public static async Task<List<PollResponse>> CallPolling(this HttpClient client)
         {
-            var response = await client.GetAsync("/" + new ExtDirectOptions().PollingRouteUrl);
+            var response = await client.GetAsync("/" + new ExtDirectOptions().PollingRouteUrl + "/POLLING_API");
             var responseString = await response.Content.ReadAsStringAsync();
             var result = JsonConvert.DeserializeObject<List<PollResponse>>(responseString, Utils.Util.DefaultSerializerSettings);
             return result;
@@ -46,7 +46,7 @@ namespace AspNetCore.ExtDirect.Test
         private static async Task<T> PostAsync<T>(this HttpClient client, object request)
         {
             var json = JsonConvert.SerializeObject(request, Utils.Util.DefaultSerializerSettings);
-            var response = await client.PostAsync("/" + new ExtDirectOptions().RemotingRouteUrl, new StringContent(json));
+            var response = await client.PostAsync("/" + new ExtDirectOptions().RemotingRouteUrl + "/REMOTING_API", new StringContent(json));
             if (!response.IsSuccessStatusCode)
             {
                 throw new Exception("HTTP request failed.");

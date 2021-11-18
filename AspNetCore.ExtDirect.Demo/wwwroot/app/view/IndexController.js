@@ -5,10 +5,22 @@
     control: {
         "#": {
             beforerender: function () {
-                const pollingProvider = Ext.direct.Manager.getProvider('DemoPolling');
                 const viewModel = this.getViewModel();
-                pollingProvider.on("data", function (provider, event) {
-                    viewModel.set("someRandomData", event.data);
+
+                const dataPollingProvider = Ext.direct.Manager.getProvider('DemoPolling');
+                
+                dataPollingProvider.on("data", function (provider, event) {
+                    if (event.name === "ondata") {
+                        viewModel.set("someRandomData", event.data);
+                    }
+                });
+
+                const chatPollingProvider = Ext.direct.Manager.getProvider('ChatPolling');
+                chatPollingProvider.on("data", function (provider, event) {
+                    if (event.name === "onmessage") {
+                        const store = viewModel.getStore("chat");
+                        store.add(event.data);
+                    }
                 });
             }
         },
@@ -91,7 +103,7 @@
                             }
                         );
                     } else {
-                        Ext.Msg.alert('AspNetCore.ExtDirect', 'Server said: ' + JSON.stringify(response));
+                        Ext.Msg.alert("AspNetCore.ExtDirect", "Server said: " + JSON.stringify(response));
                     }
                 });
             }
@@ -116,7 +128,28 @@
                             }
                         );
                     } else {
-                        Ext.Msg.alert('AspNetCore.ExtDirect', 'Server said: ' + response);
+                        Ext.Msg.alert('AspNetCore.ExtDirect', 'Server said that person full name is ' + response);
+                    }
+                });
+            }
+        },
+
+        "#cmdSendMessage": {
+            click: function () {
+                const viewModel = this.getViewModel();
+                const chatMessage = viewModel.get("chatMessage");
+                Chat.sendMessage(chatMessage, function (response, e) {
+                    if (e.type === "exception") {
+                        Ext.Msg.show(
+                            {
+                                title: "Error",
+                                message: e.message,
+                                icon: Ext.MessageBox.ERROR,
+                                buttons: Ext.MessageBox.OK
+                            }
+                        );
+                    } else {
+                        viewModel.set("chatMessage", "");
                     }
                 });
             }

@@ -52,8 +52,15 @@ namespace AspNetCore.ExtDirect.Test
                         });
 
                     services.AddExtDirect();
-                    services.AddExtDirectRemotingHandler<DemoActionHandler>("Demo");
-                    services.AddExtDirectPollingHandler<DemoPollingHandler>();
+                    services.AddExtDirectRemotingApi(options =>
+                    {
+                        options.AddActionHandler<DemoActionHandler>("Demo");
+                        options.AddActionHandler<TestHandler>("Test");
+                    });
+                    services.AddExtDirectPollingApi(options =>
+                    {
+                        options.AddPollingHandler<TestPollingHandler>();
+                    });
                 });
                 webBuilder.Configure(app =>
                 {

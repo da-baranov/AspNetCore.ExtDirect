@@ -1,9 +1,31 @@
-﻿using System.Collections.Generic;
+﻿using AspNetCore.ExtDirect.Utils;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace AspNetCore.ExtDirect.Meta
 {
     public sealed class RemotingMethod
     {
+        public RemotingMethod()
+        {
+        }
+
+        internal RemotingMethod(MethodInfo methodInfo)
+        {
+            this.MethodInfo = methodInfo ?? throw new ArgumentNullException(nameof(methodInfo));
+            this.Name = Util.ToCamelCase(methodInfo.Name);
+            this.Params.AddRange(this.MethodInfo.GetParameters().Select(row => Util.ToCamelCase(row.Name)).ToList());
+            this.Len = this.Params.Count;
+
+            var attr = methodInfo.GetCustomAttribute<ExtDirectNamedArgsAttribute>();
+            if (attr != null)
+            {
+                NamedArguments = true;
+            }
+        }
+
         /// <summary>
         /// A JavaScript Boolean value of true indicates that this Method accepts Form submits
         /// </summary>
@@ -39,5 +61,7 @@ namespace AspNetCore.ExtDirect.Meta
         public bool ShouldSerializeLen() => !NamedArguments;
 
         public bool ShouldSerializeParams() => NamedArguments;
+
+        internal MethodInfo MethodInfo { get; set; }
     }
 }

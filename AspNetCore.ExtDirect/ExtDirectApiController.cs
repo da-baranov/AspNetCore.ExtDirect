@@ -1,20 +1,17 @@
 ﻿using AspNetCore.ExtDirect.Meta;
-using AspNetCore.ExtDirect.Utils;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Localization;
+using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect
 {
     /// <summary>
-    ///
+    /// Provides methods that respond to Ext Direct requests
     /// </summary>
     /// <remarks>
-    /// We do not use routing attributes intentionally.
-    /// Use IServiceCollection.AddExtDirect... and IApplicationBuilder.UseExtDirect extension methods to define controller routes
+    /// We do not use routing attributes intentionally. Use extension methods to configure AspNetCore.ExtDirect services on application Startup
     /// </remarks>
     public class ExtDirectApiController : Controller
     {
@@ -26,72 +23,62 @@ namespace AspNetCore.ExtDirect
                                       ExtDirectHandlerRepository repository,
                                       ExtDirectOptions options)
         {
-            _serviceProvider = serviceProvider 
+            _serviceProvider = serviceProvider
                 ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _repository = repository 
+            _repository = repository
                 ?? throw new ArgumentNullException(nameof(repository));
-            _options = options 
+            _options = options
                 ?? throw new ArgumentNullException(nameof(options));
         }
 
-        [AcceptVerbs("GET")]
-        public async Task<IActionResult> Events()
-        {
-            var result = await OnEvents();
-            return Ok(result);
-        }
-
+        /// <summary>
+        /// Creates Ext Direct client JavaScript API descriptor
+        /// </summary>
+        /// <remarks>A reference to API must be known to ExtJS client application, e.g. &lt;script src="~/ExtDirect.js"&gt;></remarks>
+        /// <see href="https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html"/>
         [AcceptVerbs("GET")]
         public async Task<IActionResult> Index()
         {
-            return await OnGet();
+            var result = _repository.ToApi(Url, _options.RemotingRouteUrl, _options.PollingRouteUrl);
+            return await Task.FromResult(Content(result, ExtDirectConstants.TEXT_JAVASCRIPT, Encoding.UTF8));
         }
 
+        /// <summary>
+        /// Handles client Ext Direct remoting requests
+        /// </summary>
+        /// <param name="providerName"></param>
+        /// <param name="request"></param>
+        /// <see href="https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html"/>
         [AcceptVerbs("POST")]
-        public async Task<IActionResult> Index(
-            [FromBody]
-            [ModelBinder(typeof(ExtDirectRequestModelBinder))] 
-            RemotingRequestBatch request)
+        public async Task<IActionResult> OnAction(
+            [FromRoute] string providerName,
+            [FromBody][ModelBinder(typeof(ExtDirectRequestModelBinder))] RemotingRequestBatch request)
         {
-            var handler = new ExtDirectActionHandler(_serviceProvider, request);
+            var handler = new ExtDirectActionHandler(_serviceProvider, providerName, request);
             var result = await handler.ExecuteAsync();
-            return Ok(result);
+            return await Json(result);
         }
 
-        private async Task<List<PollResponse>> OnEvents()
+        /// <summary>
+        /// Handles client Ext Direct polling requests
+        /// </summary>
+        /// <param name="providerName"></param>
+        /// <see href="https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html"/>
+        [AcceptVerbs("GET")]
+        public async Task<IActionResult> OnEvents(
+            [FromRoute] string providerName)
         {
-            var handler = new ExtDirectPollingEventHandler(_serviceProvider);
+            var handler = new ExtDirectPollingEventHandler(_serviceProvider, providerName);
             var result = await handler.ExecuteAsync();
-            return result;
+            return await Json(result);
         }
 
-        private async Task<IActionResult> OnGet()
+        /// <summary>
+        /// Uses Newtonsoft.Json
+        /// </summary>
+        private new async Task<IActionResult> Json(object data)
         {
-            var script = new StringBuilder();
-
-            script.AppendLine($"var Ext = Ext || {{}};");
-
-            // Remoting API
-            script.AppendLine($"Ext.{_options.RemotingApiName} = ");
-            var remotingApi = _repository.ToRemotingApi();
-            remotingApi.Id = _options.RemotingApiId;
-            remotingApi.Url = this.Url.Content("~/" + _options.RemotingRouteUrl);
-            script.AppendLine(Util.JsonSerialize(remotingApi));
-            script.AppendLine(";");
-            script.AppendLine();
-
-            // Polling API
-            var pollingApi = new PollingApi
-            {
-                Id = _options.PollingApiId,
-                Url = this.Url.Content("~/" + _options.PollingRouteUrl)
-            };
-            script.AppendLine($"Ext.{_options.PollingApiName} = ");
-            script.Append(Util.JsonSerialize(pollingApi));
-            script.Append(';');
-
-            var result = Content(script.ToString(), "text/javascript;charset=UTF-8");
-            return await Task.FromResult(result);
+            return await Task.FromResult(Content(JsonConvert.SerializeObject(data, Utils.Util.DefaultSerializerSettings), ExtDirectConstants.APPLICATION_JSON, Encoding.UTF8));
         }
     }
 }

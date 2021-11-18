@@ -15,12 +15,7 @@ namespace AspNetCore.ExtDirect.Demo
             var b = Convert.ToInt32(r.NextDouble() * 10000);
             BigInteger c = a * b;
             var data = $"{a} * {b} = {c}";
-            var evt = new PollResponse
-            {
-                Name = "ondata",
-                Data = data
-            };
-            yield return evt;
+            yield return new PollResponse { Name = "ondata", Data = data };
         }
     }
 }

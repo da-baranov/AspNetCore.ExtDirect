@@ -25,6 +25,27 @@
 
         pollingEnabled: false,
 
-        someRandomData: "2 * 2 = 4"
+        someRandomData: "2 * 2 = 4",
+
+        chatMessage: null
+    },
+
+    stores: {
+        chat: {
+            proxy: {
+                type: "memory"
+            },
+            fields: [
+                {
+                    name: "id"
+                },
+                {
+                    name: "date", type: "date", dateFormat: "c"
+                },
+                {
+                    name: "message"
+                }
+            ]
+        }
     }
 });

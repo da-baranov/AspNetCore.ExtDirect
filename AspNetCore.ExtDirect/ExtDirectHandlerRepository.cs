@@ -1,19 +1,25 @@
 ﻿using AspNetCore.ExtDirect.Meta;
 using AspNetCore.ExtDirect.Utils;
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace AspNetCore.ExtDirect
 {
-    public class ExtDirectHandlerRepository
+    /// <summary>
+    /// For internal use
+    /// </summary>
+    public sealed class ExtDirectHandlerRepository
     {
-        private IStringLocalizer _localizer;
-        private IStringLocalizerFactory _localizerFactory;
-        private IServiceProvider _services;
+        private readonly IStringLocalizer _localizer;
+        private readonly IStringLocalizerFactory _localizerFactory;
+        private readonly IServiceProvider _services;
+
         internal ExtDirectHandlerRepository(IServiceProvider services)
         {
             _services = services
@@ -22,159 +28,128 @@ namespace AspNetCore.ExtDirect
             _localizer = _localizerFactory.Create(typeof(Properties.Resources));
         }
 
-        internal List<Type> PollingHandlers { get; private set; } = new();
-        internal Dictionary<string, ExtActionType> RemotingHandlers { get; private set; } = new();
+        // Provider name + polling handler type
+        internal Dictionary<string, PollingApi> PollingApis { get; private set; }
+            = new Dictionary<string, PollingApi>(StringComparer.InvariantCultureIgnoreCase);
 
-        public void RegisterPollingHandler<T>()
-            where T : IExtDirectPollingEventSource
+        // Provider name + list of remoting handler types
+        internal Dictionary<string, RemotingApi> RemotingApis { get; private set; }
+            = new Dictionary<string, RemotingApi>(StringComparer.InvariantCultureIgnoreCase);
+
+        /// <summary>
+        /// Registers and ExtDirect polling handler
+        /// </summary>
+        /// <param name="options">Handler options</param>
+        internal void RegisterPollingHandler(ExtDirectPollingEventHandlerOptions options)
         {
-            if (!PollingHandlers.Contains(typeof(T)))
+            var pollingApi = new PollingApi(options);
+
+            if (PollingApis.ContainsKey(options.Name))
             {
-                PollingHandlers.Add(typeof(T));
+                throw new Exception(_localizer[nameof(Properties.Resources.ERR_DUPLICATE_POLLING_API_NAME), options.Name]);
             }
+            this.PollingApis.Add(pollingApi.Name, pollingApi);
         }
 
         /// <summary>
         /// Registers an ExtDirect action handler
         /// </summary>
-        /// <param name="actionHandlerType">Type of ExtDirect action handler</param>
-        /// <param name="actionName">Action name</param>
-        public void RegisterRemotingHandler(Type actionHandlerType, string actionName = null)
+        /// <param name="options">Handler options</param>
+        internal void RegisterRemotingHandler(ExtDirectActionHandlerOptions options)
         {
-            if (actionHandlerType == null)
+            // Validation
+            new ExtDirectActionHandlerOptionsValidator().ValidateAndThrow(options);
+
+            // Saving for API
+            var remotingApi = new RemotingApi(options);
+
+            if (RemotingApis.ContainsKey(options.Name))
             {
-                throw new ArgumentNullException(nameof(actionHandlerType));
+                throw new Exception(_localizer[nameof(Properties.Resources.ERR_DUPLICATE_REMOTING_API_NAME), options.Name]);
             }
+            RemotingApis.Add(options.Name, remotingApi);
 
-            var internalActionName = actionName;
-
-            var extActionAttribute = actionHandlerType.GetCustomAttribute<ExtDirectActionAttribute>(false);
-            if (extActionAttribute != null)
+            foreach (var handlerType in options.HandlerTypes.Keys)
             {
-                if (!string.IsNullOrEmpty(extActionAttribute.Name))
+                var actionName = options.HandlerTypes[handlerType];
+
+                if (remotingApi.Actions.ContainsKey(actionName))
                 {
-                    internalActionName = extActionAttribute.Name;
+                    throw new Exception(_localizer[nameof(Properties.Resources.ERR_DUPLICATE_ACTION), actionName]);
                 }
-            }
 
-            if (string.IsNullOrEmpty(internalActionName))
-            {
-                internalActionName = actionHandlerType.FullName;
-            }
-
-            if (RemotingHandlers.ContainsKey(internalActionName))
-            {
-                throw new Exception(_localizer[nameof(Properties.Resources.ERR_DUPLICATE_ACTION), internalActionName]);
-            }
-            else
-            {
-                RemotingHandlers.Add(internalActionName, new ExtActionType(internalActionName, actionHandlerType));
-            }
-        }
-
-        public void ScanAssemblies()
-        {
-            var extHandlerTypes = Util.GetActionTypes();
-            foreach (var extHandlerType in extHandlerTypes)
-            {
-                RegisterRemotingHandler(extHandlerType);
-            }
-        }
-
-        internal void FindExtDirectActionAndMethod(string actionNameOrTypeName, string method, out Type type, out MethodInfo methodInfo)
-        {
-            var targetHadlerKey = this.RemotingHandlers.Keys.FirstOrDefault(row => string.Equals(row, actionNameOrTypeName, StringComparison.InvariantCultureIgnoreCase));
-            if (string.IsNullOrEmpty(targetHadlerKey))
-            {
-                throw new Exception($"Cannot find ExtDirect action \"{actionNameOrTypeName}\" handler.");
-            }
-
-            // Looking for a Type
-            var a = RemotingHandlers[targetHadlerKey];
-            type = a.Type;
-
-            // Looking for a MethodInfo
-            var m = a.Methods.FirstOrDefault(row =>
-                string.Equals(row.Name, method, StringComparison.InvariantCultureIgnoreCase));
-            if (m == null)
-            {
-                throw new Exception($"Cannot find method \"{method}\" on ExtDirect action \"{actionNameOrTypeName}\" handler.");
-            }
-            methodInfo = m.Method;
-        }
-
-        internal RemotingApi ToRemotingApi()
-        {
-            var result = new RemotingApi();
-            foreach (var key in RemotingHandlers.Keys)
-            {
-                var handler = RemotingHandlers[key];
-                var extAction = new RemotingAction();
-                foreach (var handlerMethod in handler.Methods)
+                var remotingAction = new RemotingAction(handlerType)
                 {
-                    var extMethod = new RemotingMethod();
-                    extMethod.Name = Util.ToCamelCase(handlerMethod.Name);
-                    extMethod.Params.AddRange(handlerMethod.Args);
-                    extMethod.Len = handlerMethod.Args.Count;
-                    extMethod.NamedArguments = handlerMethod.NamedArguments;
-                    extAction.Add(extMethod);
-                }
-                result.Actions.Add(key, extAction);
+                    Name = actionName
+                };
+
+                remotingApi.Actions.Add(actionName, remotingAction);
             }
-            return result;
         }
 
-        internal class ExtActionMethod
+        internal void FindExtDirectActionAndMethod(string providerName, string actionName, string method, out Type type, out MethodInfo methodInfo)
         {
-            internal ExtActionMethod(MethodInfo methodInfo)
+            type = null;
+            methodInfo = null;
+
+            if (!RemotingApis.TryGetValue(providerName, out RemotingApi remotingApi))
             {
-                Method = methodInfo ?? throw new ArgumentNullException(nameof(methodInfo));
-                foreach (var param in Method.GetParameters())
-                {
-                    Args.Add(param.Name);
-                }
+                throw new Exception($"Cannot find ExtDirect provider \"{providerName}\" handler.");
             }
 
-            internal bool NamedArguments { get; set; } = false;
+            if (!remotingApi.Actions.TryGetValue(actionName, out RemotingAction remotingAction))
+            {
+                throw new Exception($"Cannot find action \"{actionName}\" within provider \"{providerName}\"");
+            }
+            type = remotingAction.ActionType;
 
-            public List<string> Args { get; private set; } = new();
-
-            public MethodInfo Method { get; private set; }
-
-            public string Name => Method.Name;
+            var actionMethod = remotingAction[method];
+            if (actionMethod == null)
+            {
+                throw new Exception($"Cannot find method \"{method}\" on ExtDirect provider \"{providerName}\" and action \"{actionName}\" handler.");
+            }
+            methodInfo = actionMethod.MethodInfo;
         }
 
-        internal class ExtActionType
+        internal IEnumerable<RemotingApi> ToRemotingApi()
         {
-            internal ExtActionType(string name, Type type)
+            return RemotingApis.Values;
+        }
+
+        internal IEnumerable<PollingApi> ToPollingApi()
+        {
+            return PollingApis.Values;
+        }
+
+        internal string ToApi(IUrlHelper urlHelper, string remotingRoute, string pollingRoute)
+        {
+            var script = new StringBuilder();
+
+            script.AppendLine($"var Ext = Ext || {{}};");
+
+            // Remoting APIs
+            foreach (var remotingApi in ToRemotingApi())
             {
-                Type = type ?? throw new ArgumentNullException(nameof(type));
-
-                Name = string.IsNullOrEmpty(name) ? type.FullName : name;
-
-                var publicMethods =
-                     Type
-                    .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                    .ToList();
-                foreach (var publicMethod in publicMethods)
-                {
-                    var method = new ExtActionMethod(publicMethod);
-                    var namedArgsAttribute = publicMethod.GetCustomAttribute<ExtDirectNamedArgsAttribute>();
-                    if (namedArgsAttribute != null)
-                    {
-                        method.NamedArguments = true;
-                    }
-                    Methods.Add(method);
-                }
+                script.AppendLine($"Ext.{remotingApi.Name} = ");
+                remotingApi.Url = urlHelper.Content("~/" + remotingRoute + "/" + remotingApi.Name);
+                script.Append(Util.JsonSerialize(remotingApi));
+                script.Append(';');
+                script.AppendLine();
+                script.AppendLine();
             }
 
-            internal List<ExtActionMethod> Methods { get; private set; } = new();
+            // Polling APIs
+            foreach (var pollingApi in ToPollingApi())
+            {
+                script.AppendLine($"Ext.{pollingApi.Name} = ");
+                pollingApi.Url = urlHelper.Content("~/" + pollingRoute + "/" + pollingApi.Name);
+                script.Append(Util.JsonSerialize(pollingApi));
+                script.Append(';');
+                script.AppendLine();
+                script.AppendLine();
+            }
 
-            internal string Name { get; set; }
-
-            internal Type Type { get; set; }
-
-            internal string TypeName => Type.FullName;
+            return script.ToString();
         }
     }
 }

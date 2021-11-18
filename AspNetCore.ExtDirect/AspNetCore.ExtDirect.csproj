@@ -5,6 +5,10 @@
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <Authors>Dmitry Baranov</Authors>
+    <Copyright>(c) Dmitry Baranov</Copyright>
+    <PackageProjectUrl>https://github.com/da-baranov/AspNetCore.ExtDirect</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +19,7 @@
     <PackageReference Include="FluentValidation.AspNetCore" Version="10.3.4" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.11" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="system.codedom" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +35,13 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
   
 

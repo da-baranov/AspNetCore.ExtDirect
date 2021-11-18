@@ -10,6 +10,7 @@ namespace AspNetCore.ExtDirect.Demo
         public string LastName { get; set; }
     }
 
+    [ExtDirectAction("Demo")]
     public class DemoActionHandler
     {
         private readonly IExtDirectTransactionService _transactionService;

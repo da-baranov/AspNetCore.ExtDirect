@@ -1,27 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using FluentValidation;
 
 namespace AspNetCore.ExtDirect
 {
+    /// <summary>
+    /// AspNetCore Ext Direct options
+    /// </summary>
     public class ExtDirectOptions
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public ExtDirectOptions()
         {
         }
 
-        public string RemotingApiId { get; set; } = "AspNetCore.ExtDirect";
-
+        /// <summary>
+        /// Defines a route that AspNetCore Ext Direct controller uses to handle client Remoting Manager requests, e.g /ExtDirect
+        /// </summary>
         public string RemotingRouteUrl { get; set; } = "ExtDirect";
 
-        public string RemotingApiName { get; set; } = "REMOTING_API";
-
-        public string PollingApiId { get; set; } = "AspNetCore.ExtDirectEvents";
-
+        /// <summary>
+        /// Defines a route that AspNetCore Ext Direct controller uses to handle client Polling Manager requests, e.g /ExtDirectEvents
+        /// </summary>
         public string PollingRouteUrl { get; set; } = "ExtDirectEvents";
+    }
 
-        public string PollingApiName { get; set; } = "POLLING_API";
+    internal class ExtDirectOptionsValidator : AbstractValidator<ExtDirectOptions>
+    {
+        public ExtDirectOptionsValidator()
+        {
+            RuleFor(options => options.PollingRouteUrl)
+                .NotNull()
+                .NotEmpty();
+
+            RuleFor(options => options.RemotingRouteUrl)
+                .NotNull()
+                .NotEmpty()
+                .NotEqual(o => o.PollingRouteUrl);
+        }
     }
 }

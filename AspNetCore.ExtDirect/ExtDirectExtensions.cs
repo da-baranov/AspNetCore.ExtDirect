@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
@@ -15,7 +16,8 @@ namespace AspNetCore.ExtDirect
             services.AddLocalization();
 
             // Configuration
-            if (configure != null) configure(options);
+            configure?.Invoke(options);
+            new ExtDirectOptionsValidator().ValidateAndThrow(options);
             services.AddSingleton(options);
 
             // Collect ExtDirect handlers
@@ -29,56 +31,62 @@ namespace AspNetCore.ExtDirect
             return services;
         }
 
-        public static IServiceCollection AddExtDirectRemotingHandler<T>(this IServiceCollection services, string actionName = null)
-            where T : class
+        public static IServiceCollection AddExtDirectRemotingApi(this IServiceCollection services, Action<ExtDirectActionHandlerOptions> configure)
         {
+            var options = new ExtDirectActionHandlerOptions();
+            configure?.Invoke(options);
+            new ExtDirectActionHandlerOptionsValidator().ValidateAndThrow(options);
+
             var repository = GetRepository(services);
-            repository.RegisterRemotingHandler(typeof(T), actionName);
+            repository.RegisterRemotingHandler(options);
             return services;
         }
 
-        public static IServiceCollection AddExtDirectPollingHandler<T>(this IServiceCollection services)
-            where T : class, IExtDirectPollingEventSource
+        public static IServiceCollection AddExtDirectPollingApi(this IServiceCollection services, Action<ExtDirectPollingEventHandlerOptions> configure)
         {
+            var options = new ExtDirectPollingEventHandlerOptions();
+            configure?.Invoke(options);
+            new ExtDirectPollingEventHandlerOptionsValidator().ValidateAndThrow(options);
+
             var repository = GetRepository(services);
-            repository.RegisterPollingHandler<T>();
+            repository.RegisterPollingHandler(options);
             return services;
         }
 
         public static IApplicationBuilder UseExtDirect(this IApplicationBuilder app)
         {
             // Apply options
-            var options = app.ApplicationServices.GetRequiredService<ExtDirectOptions>();
-            if (options != null)
+            var options = app.ApplicationServices.GetService<ExtDirectOptions>();
+
+            if (options == null)
             {
-                app.UseEndpoints(endpoints =>
-                {
-                    var controllerName = nameof(ExtDirectApiController).Replace("Controller", "");
-
-                    // ExtDirect service descriptor (handles HTTP GET)
-                    endpoints.MapControllerRoute(
-                        name: "ExtDirectApi",
-                        pattern: options.RemotingRouteUrl + ".js",
-                        defaults: new { controller = controllerName, action = nameof(ExtDirectApiController.Index) });
-
-                    // Ext Direct remoting controller (handles HTTP POST)
-                    endpoints.MapControllerRoute(
-                        name: "ExtDirectRemoting",
-                        pattern: options.RemotingRouteUrl,
-                        defaults: new { controller = controllerName, action = nameof(ExtDirectApiController.Index) });
-
-                    // Ext Direct polling controller (handles HTTP GET)
-                    endpoints.MapControllerRoute(
-                        name: "ExtDirectPolling",
-                        pattern: options.PollingRouteUrl,
-                        defaults: new { controller = controllerName, action = nameof(ExtDirectApiController.Events) });
-                });
+                throw new ApplicationException(Properties.Resources.ERR_NOT_CONFIGURED);
             }
 
-            // Collect handlers
-            var repository = app.ApplicationServices.GetService<ExtDirectHandlerRepository>();
-            // repository.ScanAssemblies(); - draft
+            app.UseEndpoints(endpoints =>
+            {
+                var controllerName = nameof(ExtDirectApiController).Replace("Controller", "");
 
+                // ExtDirect service descriptor (handles HTTP GET)
+                endpoints.MapControllerRoute(
+                    name: "ExtDirectApi",
+                    pattern: options.RemotingRouteUrl + ".js",
+                    defaults: new { controller = controllerName, action = nameof(ExtDirectApiController.Index) });
+
+                // Ext Direct remoting controller (handles HTTP POST)
+                endpoints.MapControllerRoute(
+                    name: "ExtDirectRemoting",
+                    pattern: options.RemotingRouteUrl + "/{providerName}",
+                    defaults: new { controller = controllerName, action = nameof(ExtDirectApiController.OnAction) });
+
+                // Ext Direct polling controller (handles HTTP GET)
+                endpoints.MapControllerRoute(
+                    name: "ExtDirectPolling",
+                    pattern: options.PollingRouteUrl + "/{providerName}",
+                    defaults: new { controller = controllerName, action = nameof(ExtDirectApiController.OnEvents) });
+            });
+
+            var repository = app.ApplicationServices.GetService<ExtDirectHandlerRepository>();
             return app;
         }
 

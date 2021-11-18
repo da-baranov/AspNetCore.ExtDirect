@@ -7,7 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.ExtDirect", "Asp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.ExtDirect.Test", "AspNetCore.ExtDirect.Test\AspNetCore.ExtDirect.Test.csproj", "{B17167EA-DDED-4617-9D37-393948CEA4FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.ExtDirect.Demo", "AspNetCore.ExtDirect.Demo\AspNetCore.ExtDirect.Demo.csproj", "{72FDF836-0152-44EC-BD34-C02E0E0E2952}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.ExtDirect.Demo", "AspNetCore.ExtDirect.Demo\AspNetCore.ExtDirect.Demo.csproj", "{72FDF836-0152-44EC-BD34-C02E0E0E2952}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{069E8563-A835-4A54-80EF-9D46931B08EE}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

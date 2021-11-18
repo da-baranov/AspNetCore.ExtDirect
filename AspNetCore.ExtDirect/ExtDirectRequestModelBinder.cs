@@ -11,6 +11,9 @@ using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect
 {
+    /// <summary>
+    /// Converts Ext Direct JSON requests to an object
+    /// </summary>
     internal class ExtDirectRequestModelBinder : IModelBinder
     {
         // TODO: https://stackoverflow.com/questions/52350447/in-asp-net-core-how-can-i-get-the-multipart-form-data-from-the-body
@@ -59,7 +62,7 @@ namespace AspNetCore.ExtDirect
                     else
                     {
                         bindingContext.Result = ModelBindingResult.Failed();
-                        bindingContext.ModelState.TryAddModelError(bindingContext.ModelName, 
+                        bindingContext.ModelState.TryAddModelError(bindingContext.ModelName,
                                                                    localizer[nameof(Properties.Resources.ERR_INVALID_EXT_REQUEST)]);
                     }
                 }

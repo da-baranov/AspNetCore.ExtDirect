@@ -8,6 +8,22 @@ namespace AspNetCore.ExtDirect.Meta
 {
     public sealed class RemotingApi
     {
+        public RemotingApi()
+        {
+
+        }
+
+        internal RemotingApi(ExtDirectActionHandlerOptions options)
+        {
+            if (options == null) throw new ArgumentNullException(nameof(options));
+            Id = options.Id;
+            Name = options.Name;
+            Namespace = options.Namespace;
+            Timeout = options.Timeout;
+        }
+
+        internal string Name { get; set; }
+
         /// <summary>
         /// The identifier for the Remoting API Provider. This is useful when there are more than one API in use
         /// </summary>
@@ -28,14 +44,19 @@ namespace AspNetCore.ExtDirect.Meta
         /// </summary>
         public string Namespace { get; set; }
 
+        public bool ShouldSerializeNamespace() => !string.IsNullOrWhiteSpace(Namespace);
+
         /// <summary>
         /// The number of milliseconds to use as the timeout for every Method invocation in this Remoting API
         /// </summary>
         public int? Timeout { get; set; }
 
+        public bool ShouldSerializeTimeout() => Timeout != null;
+
         /// <summary>
         ///  Array of Objects that represent Methods
         /// </summary>
-        public Dictionary<string, RemotingAction> Actions { get; private set; } = new Dictionary<string, RemotingAction>();
+        public Dictionary<string, RemotingAction> Actions { get; private set; }
+            = new Dictionary<string, RemotingAction>(StringComparer.InvariantCultureIgnoreCase);
     }
 }

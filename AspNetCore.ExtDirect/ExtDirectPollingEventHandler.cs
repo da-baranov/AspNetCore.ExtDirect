@@ -7,32 +7,46 @@ using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect
 {
+    /// <summary>
+    /// Handles Ext Direct polling requests
+    /// </summary>
     internal sealed class ExtDirectPollingEventHandler
     {
-        private IServiceProvider _serviceProvider;
-        private ExtDirectHandlerRepository _repository;
-        private IStringLocalizerFactory _localizerFactory;
-        private IStringLocalizer _localizer;
-        private List<PollResponse> _result = new();
+        private readonly IStringLocalizer _localizer;
+        private readonly IStringLocalizerFactory _localizerFactory;
+        private readonly string _providerName;
+        private readonly ExtDirectHandlerRepository _repository;
+        private readonly IServiceProvider _serviceProvider;
 
-        public ExtDirectPollingEventHandler(IServiceProvider serviceProvider)
+        public ExtDirectPollingEventHandler(IServiceProvider serviceProvider, string providerName)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _repository = serviceProvider.GetService<ExtDirectHandlerRepository>();
-
+            _providerName = !string.IsNullOrWhiteSpace(providerName) ? providerName : throw new ArgumentNullException(nameof(providerName));
             _localizerFactory = serviceProvider.GetService<IStringLocalizerFactory>();
             _localizer = _localizerFactory.Create(typeof(Properties.Resources));
+            _repository = _serviceProvider.GetService<ExtDirectHandlerRepository>();
         }
 
         public async Task<List<PollResponse>> ExecuteAsync()
         {
-            _result.Clear();
-            foreach (var type in _repository.PollingHandlers)
+            if (!_repository.PollingApis.TryGetValue(_providerName, out PollingApi pollingApi))
             {
-                var handlerInstance = ActivatorUtilities.CreateInstance(_serviceProvider, type) as IExtDirectPollingEventSource;
-                _result.AddRange(handlerInstance.GetEvents());
+                throw new Exception(_localizer[nameof(Properties.Resources.ERR_CANNOT_FIND_POLLING_HANDLER), _providerName]);
             }
-            return await Task.FromResult(_result);
+
+            var result = new List<PollResponse>();
+            foreach (var pollingHandler in pollingApi.HandlerTypes)
+            {
+                var handlerInstance = ActivatorUtilities.CreateInstance(_serviceProvider, pollingHandler) as IExtDirectPollingEventSource;
+                // null checking is not required
+                var events = handlerInstance.GetEvents();
+                if (events != null)
+                {
+                    result.AddRange(events);
+                }
+            }
+
+            return await Task.FromResult(result);
         }
     }
 }
