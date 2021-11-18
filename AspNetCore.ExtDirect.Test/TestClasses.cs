@@ -28,11 +28,17 @@ namespace AspNetCore.ExtDirect.Test
         {
             return value;
         }
+
+        public async Task<TestPerson> GetPerson()
+        {
+            var person = new TestPerson { FirstName = "John", LastName = "Doe" };
+            return await Task.FromResult(person);
+        }
     }
 
     public class TestPollingHandler : IExtDirectPollingEventSource
     {
-        public IEnumerable<PollResponse> GetEvents()
+        public IEnumerable<PollResponse> GetEvents(params object[] args)
         {
             for (var i = 0; i < 1000; i++)
             {

@@ -7,7 +7,7 @@ namespace AspNetCore.ExtDirect.Demo
 {
     public class DemoPollingHandler : IExtDirectPollingEventSource
     {
-        public IEnumerable<PollResponse> GetEvents()
+        public IEnumerable<PollResponse> GetEvents(params object[] args)
         {
             var r = new Random();
 

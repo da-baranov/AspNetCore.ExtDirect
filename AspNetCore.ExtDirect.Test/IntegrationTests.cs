@@ -23,6 +23,13 @@ namespace AspNetCore.ExtDirect.Test
         }
 
         [Test]
+        public async Task Test_AsyncMethod()
+        {
+            var rv = await _client.CallOrdered<TestPerson>("Test", "getPerson");
+            Assert.IsTrue(rv.LastName == "Doe");
+        }
+
+        [Test]
         public async Task Test_ComplexArguments()
         {
             var personName = new { Prefix = "Mr.", FirstName = "John", LastName = "Doe" };

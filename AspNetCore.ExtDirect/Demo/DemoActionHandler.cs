@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Transactions;
 
 namespace AspNetCore.ExtDirect.Demo
@@ -43,13 +44,13 @@ namespace AspNetCore.ExtDirect.Demo
             };
         }
 
-        public string Hello(string name)
+        public async Task<string> Hello(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
                 throw new ArgumentNullException(nameof(name), "No name provided");
             }
-            return "Hello, " + name + "!";
+            return await Task.FromResult("Hello, " + name + "!");
         }
 
         public object OrderedArguments(string a, double b, DateTime c)

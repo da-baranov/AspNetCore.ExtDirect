@@ -11,7 +11,7 @@ namespace AspNetCore.ExtDirect.Demo
 
         private static List<ChatMessage> Messages { get; } = new();
 
-        public IEnumerable<PollResponse> GetEvents()
+        public IEnumerable<PollResponse> GetEvents(params object[] args)
         {
             foreach (var message in Messages.Where(row => row.Read == false))
             {

@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect
@@ -52,6 +53,27 @@ namespace AspNetCore.ExtDirect
         /// <returns></returns>
         private async Task<object> InvokeAsync(RemotingRequest request, object obj, MethodInfo methodInfo, object arguments)
         {
+            async Task<object> _InvokeAsync(params object[] args)
+            {
+                var task = (Task)methodInfo.Invoke(obj, args);
+                await task.ConfigureAwait(false);
+                var resultProperty = task.GetType().GetProperty("Result");
+                var rv = resultProperty.GetValue(task);
+                return rv;
+            }
+
+            async Task<object> _InvokeSync(params object[] args)
+            {
+                var result = methodInfo.Invoke(obj, args);
+                return await Task.FromResult(result);
+            }
+
+            // ***
+
+            var isAsync =
+                methodInfo.GetCustomAttribute<AsyncStateMachineAttribute>(false) != null ||
+                methodInfo.Name.EndsWith("async", StringComparison.InvariantCultureIgnoreCase);
+
             var parameters = methodInfo.GetParameters();
 
             // Ordered arguments
@@ -68,8 +90,9 @@ namespace AspNetCore.ExtDirect
                         args.Add(value);
                     }
                 }
-                var result = methodInfo.Invoke(obj, args.ToArray());
-                return await Task.FromResult(result);
+                return isAsync ?
+                    await _InvokeAsync(args.ToArray()) :
+                    await _InvokeSync(args.ToArray());
             }
 
             // Named arguments
@@ -89,8 +112,9 @@ namespace AspNetCore.ExtDirect
                         args.Add(null);
                     }
                 }
-                var result = methodInfo.Invoke(obj, args.ToArray());
-                return await Task.FromResult(result);
+                return isAsync ?
+                    await _InvokeAsync(args.ToArray()) :
+                    await _InvokeSync(args.ToArray());
             }
 
             // Scalar?
@@ -114,13 +138,15 @@ namespace AspNetCore.ExtDirect
                         }
                     }
                 }
-                var result = methodInfo.Invoke(obj, args.ToArray());
-                return await Task.FromResult(result);
+                return isAsync ?
+                    await _InvokeAsync(args.ToArray()) :
+                    await _InvokeSync(args.ToArray());
             }
             else if (request.Data == null)
             {
-                var result = methodInfo.Invoke(obj, Array.Empty<object>());
-                return await Task.FromResult(result);
+                return isAsync ?
+                    await _InvokeAsync(Array.Empty<object>()) :
+                    await _InvokeSync(Array.Empty<object>());
             }
             else
             {

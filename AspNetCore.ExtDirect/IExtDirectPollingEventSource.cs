@@ -8,6 +8,6 @@ namespace AspNetCore.ExtDirect
     /// </summary>
     public interface IExtDirectPollingEventSource
     {
-        IEnumerable<PollResponse> GetEvents();
+        IEnumerable<PollResponse> GetEvents(params object[] args);
     }
 }
