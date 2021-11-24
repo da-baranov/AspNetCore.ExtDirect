@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace AspNetCore.ExtDirect.Meta
 {
@@ -15,7 +16,17 @@ namespace AspNetCore.ExtDirect.Meta
         {
             Name = options.Name;
             Id = options.Id;
-            HandlerTypes.AddRange(options.HandlerTypes.Where(row => row != null).Distinct());
+            foreach (var key in options.HandlerTypes.Keys)
+            {
+                if (!HandlerTypes.ContainsKey(key))
+                {
+                    HandlerTypes.Add(key, options.HandlerTypes[key]);
+                }
+                else
+                {
+                    HandlerTypes[key] = options.HandlerTypes[key];
+                }
+            }
         }
 
         internal string Name { get; set; }
@@ -36,6 +47,6 @@ namespace AspNetCore.ExtDirect.Meta
         public string Url { get; set; }
 
 
-        internal List<Type> HandlerTypes { get; private set; } = new();
+        internal Dictionary<Type, object> HandlerTypes { get; private set; } = new();
     }
 }

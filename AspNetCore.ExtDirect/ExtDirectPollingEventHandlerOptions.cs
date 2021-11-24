@@ -1,26 +1,49 @@
-﻿using FluentValidation;
+﻿using AspNetCore.ExtDirect.Meta;
+using FluentValidation;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace AspNetCore.ExtDirect
 {
     public class ExtDirectPollingEventHandlerOptions
     {
-        private readonly List<Type> _handlerTypes = new();
+        private readonly Dictionary<Type, object> _handlerTypes = new();
 
-        public IReadOnlyList<Type> HandlerTypes => _handlerTypes;
+        public IReadOnlyDictionary<Type, object> HandlerTypes => _handlerTypes;
 
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Id { get; set; } = Utils.Util.Uuid();
 
         public string Name { get; set; } = "POLLING_API";
 
-        public void AddPollingHandler<T>()
-            where T : class, IExtDirectPollingEventSource
+        /// <summary>
+        /// Registers a polling event handler that receives arguments from query string
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T1"></typeparam>
+        /// <param name="func"></param>
+        public void AddPollingHandler<T, T1>(Func<T, T1, IEnumerable<PollResponse>> func)
+            where T : class
+            where T1: class
         {
-            if (!_handlerTypes.Contains(typeof(T)))
+            if (!_handlerTypes.ContainsKey(typeof(T)))
             {
-                _handlerTypes.Add(typeof(T));
+                _handlerTypes.Add(typeof(T), func);
+            }
+        }
+
+        /// <summary>
+        /// Registers a polling event handler with no arguments
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="func"></param>
+        public void AddPollingHandler<T>(Func<T, IEnumerable<PollResponse>> func)
+            where T : class
+        {
+            if (!_handlerTypes.ContainsKey(typeof(T)))
+            {
+                _handlerTypes.Add(typeof(T), func);
             }
         }
     }

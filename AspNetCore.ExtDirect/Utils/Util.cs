@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using System;
@@ -50,6 +53,11 @@ namespace AspNetCore.ExtDirect.Utils
         {
             // return CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value); - not working
             return System.Text.Json.JsonNamingPolicy.CamelCase.ConvertName(value);
+        }
+
+        internal static string Uuid()
+        {
+            return Guid.NewGuid().ToString().ToLowerInvariant();
         }
     }
 }

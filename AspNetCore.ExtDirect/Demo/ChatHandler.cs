@@ -5,13 +5,13 @@ using System.Linq;
 
 namespace AspNetCore.ExtDirect.Demo
 {
-    public class ChatHandler : IExtDirectPollingEventSource
+    public class ChatHandler
     {
         private static int Id = 0;
 
         private static List<ChatMessage> Messages { get; } = new();
 
-        public IEnumerable<PollResponse> GetEvents(params object[] args)
+        public IEnumerable<PollResponse> GetEvents()
         {
             foreach (var message in Messages.Where(row => row.Read == false))
             {

@@ -22,7 +22,7 @@ namespace AspNetCore.ExtDirect
         /// <summary>
         /// The unique id of the provider. Default value is random UUID string.
         /// </summary>
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Id { get; set; } = Utils.Util.Uuid();
 
         /// <summary>
         /// The unique name of the provider. Default value is "REMOTING_API"

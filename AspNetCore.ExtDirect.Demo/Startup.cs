@@ -31,12 +31,12 @@ namespace AspNetCore.ExtDirect.Demo
             services.AddExtDirectPollingApi(options =>
             {
                 options.Name = "POLLING_DATA_API";
-                options.AddPollingHandler<DemoPollingHandler>();
+                options.AddPollingHandler<DemoPollingHandler>((sender) => sender.GetEvents());
             });
             services.AddExtDirectPollingApi(options =>
             {
                 options.Name = "POLLING_CHAT_API";
-                options.AddPollingHandler<ChatHandler>();
+                options.AddPollingHandler<ChatHandler>((sender) => sender.GetEvents());
             });
         }
 

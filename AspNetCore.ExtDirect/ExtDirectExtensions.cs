@@ -42,7 +42,9 @@ namespace AspNetCore.ExtDirect
             return services;
         }
 
-        public static IServiceCollection AddExtDirectPollingApi(this IServiceCollection services, Action<ExtDirectPollingEventHandlerOptions> configure)
+        public static IServiceCollection AddExtDirectPollingApi(
+            this IServiceCollection services, 
+            Action<ExtDirectPollingEventHandlerOptions> configure)
         {
             var options = new ExtDirectPollingEventHandlerOptions();
             configure?.Invoke(options);

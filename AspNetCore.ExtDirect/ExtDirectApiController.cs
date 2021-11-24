@@ -1,5 +1,6 @@
 ﻿using AspNetCore.ExtDirect.Meta;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
 using System;
 using System.Text;
@@ -11,13 +12,15 @@ namespace AspNetCore.ExtDirect
     /// Provides methods that respond to Ext Direct requests
     /// </summary>
     /// <remarks>
-    /// We do not use routing attributes intentionally. Use extension methods to configure AspNetCore.ExtDirect services on application Startup
+    /// Routing attributes are not used, intentionally.
+    /// Use extension methods to configure AspNetCore.ExtDirect services and routes on application Startup
     /// </remarks>
     public class ExtDirectApiController : Controller
     {
         private readonly ExtDirectOptions _options;
         private readonly ExtDirectHandlerRepository _repository;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IModelBinder _modelBinder;
 
         public ExtDirectApiController(IServiceProvider serviceProvider,
                                       ExtDirectHandlerRepository repository,
@@ -34,7 +37,7 @@ namespace AspNetCore.ExtDirect
         /// <summary>
         /// Creates Ext Direct client JavaScript API descriptor
         /// </summary>
-        /// <remarks>A reference to API must be known to ExtJS client application, e.g. &lt;script src="~/ExtDirect.js"&gt;></remarks>
+        /// <remarks>A reference to this API must be known to ExtJS client application, e.g. &lt;script src="~/ExtDirect.js"&gt;></remarks>
         /// <see href="https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html"/>
         [AcceptVerbs("GET")]
         public async Task<IActionResult> Index()
@@ -68,7 +71,7 @@ namespace AspNetCore.ExtDirect
         public async Task<IActionResult> OnEvents(
             [FromRoute] string providerName)
         {
-            var handler = new ExtDirectPollingEventHandler(_serviceProvider, providerName);
+            var handler = new ExtDirectPollingEventHandler(_serviceProvider, providerName, Request.QueryString);
             var result = await handler.ExecuteAsync();
             return await Json(result);
         }

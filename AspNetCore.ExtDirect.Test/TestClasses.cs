@@ -8,7 +8,7 @@ namespace AspNetCore.ExtDirect.Test
 {
     public class TestHandler
     {
-        private IExtDirectTransactionService _transactionService;
+        private readonly IExtDirectTransactionService _transactionService;
 
         public TestHandler(IExtDirectTransactionService transactionService)
         {
@@ -36,13 +36,13 @@ namespace AspNetCore.ExtDirect.Test
         }
     }
 
-    public class TestPollingHandler : IExtDirectPollingEventSource
+    public class TestPollingHandler
     {
-        public IEnumerable<PollResponse> GetEvents(params object[] args)
+        public IEnumerable<PollResponse> GetEvents(object args)
         {
             for (var i = 0; i < 1000; i++)
             {
-                yield return new PollResponse { Name = "ondata", Data = "Variable " + i };
+                yield return new PollResponse { Name = "ondata", Data = "i = " + i };
             }
         }
     }
@@ -64,7 +64,6 @@ namespace AspNetCore.ExtDirect.Test
         public TestPersonAddress Address { get; set; }
         public List<string> Phones { get; } = new List<string>();
     }
-
 
     public class TestListItem
     {

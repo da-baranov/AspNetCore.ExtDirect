@@ -5,9 +5,9 @@ using System.Numerics;
 
 namespace AspNetCore.ExtDirect.Demo
 {
-    public class DemoPollingHandler : IExtDirectPollingEventSource
+    public class DemoPollingHandler
     {
-        public IEnumerable<PollResponse> GetEvents(params object[] args)
+        public IEnumerable<PollResponse> GetEvents()
         {
             var r = new Random();
 

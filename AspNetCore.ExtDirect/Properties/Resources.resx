@@ -147,4 +147,7 @@
   <data name="ERR_NOT_CONFIGURED" xml:space="preserve">
     <value>AspNetCore.ExtDirect configuration error. Some configuration methods (IServiceProvider.AddExtDirect and other) should be called to configure the library.</value>
   </data>
+  <data name="ERR_POLLING_HANDLER_TOO_MANY_PARAMETERS" xml:space="preserve">
+    <value>Too many parameters </value>
+  </data>
 </root>

@@ -149,5 +149,14 @@ namespace AspNetCore.ExtDirect.Properties {
                 return ResourceManager.GetString("ERR_NOT_CONFIGURED", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Too many parameters .
+        /// </summary>
+        internal static string ERR_POLLING_HANDLER_TOO_MANY_PARAMETERS {
+            get {
+                return ResourceManager.GetString("ERR_POLLING_HANDLER_TOO_MANY_PARAMETERS", resourceCulture);
+            }
+        }
     }
 }

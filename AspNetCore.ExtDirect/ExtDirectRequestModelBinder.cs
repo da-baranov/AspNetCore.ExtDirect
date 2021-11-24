@@ -22,15 +22,30 @@ namespace AspNetCore.ExtDirect
         {
         }
 
+        /// <summary>
+        /// This method accepts both RemotingRequest and array of RemotingRequest, and performs some basic validation of input data
+        /// </summary>
+        /// <param name="bindingContext"></param>
+        /// <returns></returns>
         public async Task BindModelAsync(ModelBindingContext bindingContext)
         {
-            var services = bindingContext.ActionContext.HttpContext.RequestServices;
+            var services = bindingContext.HttpContext.RequestServices;
             var localizerFactory = services.GetService<IStringLocalizerFactory>();
             var localizer = localizerFactory.Create(typeof(Properties.Resources));
 
             var contentType = new ContentType(bindingContext.HttpContext.Request.ContentType);
+            if (!string.Equals(contentType.MediaType, ExtDirectConstants.APPLICATION_JSON, StringComparison.InvariantCultureIgnoreCase))
+            {
+                bindingContext.Result = ModelBindingResult.Failed();
+                bindingContext.ModelState.TryAddModelError(bindingContext.ModelName,
+                                                                   localizer[nameof(Properties.Resources.ERR_INVALID_EXT_REQUEST)]);
+                return;
+            }
+
             var charset = contentType.CharSet;
-            var encoding = string.IsNullOrEmpty(charset) ? Encoding.UTF8 : Encoding.GetEncoding(charset);
+            var encoding = string.IsNullOrEmpty(charset) 
+                ? Encoding.UTF8 
+                : Encoding.GetEncoding(charset);
 
             var json = default(string);
             var batch = default(RemotingRequestBatch);
@@ -40,8 +55,9 @@ namespace AspNetCore.ExtDirect
                 json = await reader.ReadToEndAsync();
             }
 
-            if (string.IsNullOrEmpty(json))
+            if (string.IsNullOrWhiteSpace(json))
             {
+                // Valid content-type but empty body. Consider it's OK
                 batch = new RemotingRequestBatch();
             }
             else

@@ -1,4 +1,5 @@
 ﻿using AspNetCore.ExtDirect.Meta;
+using AspNetCore.ExtDirect.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Newtonsoft.Json.Linq;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 namespace AspNetCore.ExtDirect
 {
     /// <summary>
-    /// This class is responsible for parsing and executing a typical (non form submit and not file upload) Ext Direct JSON request
+    /// Executes Ext Direct remoting requests
     /// </summary>
     internal sealed class ExtDirectActionHandler
     {
@@ -24,7 +25,7 @@ namespace AspNetCore.ExtDirect
         private readonly ExtDirectTransactionService _transactionService;
         private List<object> _result;
 
-        public ExtDirectActionHandler(IServiceProvider serviceProvider, string providerName, RemotingRequestBatch batch)
+        internal ExtDirectActionHandler(IServiceProvider serviceProvider, string providerName, RemotingRequestBatch batch)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _providerName = providerName;
@@ -37,7 +38,7 @@ namespace AspNetCore.ExtDirect
             _localizer = _localizerFactory.Create(typeof(Properties.Resources));
         }
 
-        public async Task<List<object>> ExecuteAsync()
+        internal async Task<List<object>> ExecuteAsync()
         {
             await ValidateBatchAsync();
             await ProcessBatchAsync(_providerName);
@@ -58,6 +59,9 @@ namespace AspNetCore.ExtDirect
                 var task = (Task)methodInfo.Invoke(obj, args);
                 await task.ConfigureAwait(false);
                 var resultProperty = task.GetType().GetProperty("Result");
+
+                if (resultProperty == null) return null;
+
                 var rv = resultProperty.GetValue(task);
                 return rv;
             }
@@ -153,7 +157,7 @@ namespace AspNetCore.ExtDirect
                 throw new NotSupportedException(_localizer[nameof(Properties.Resources.ERR_INVALID_JSON),
                         request.Action,
                         request.Method,
-                        request.Data.GetType()]);
+                        request.Data?.GetType()]);
             }
         }
 
@@ -163,7 +167,7 @@ namespace AspNetCore.ExtDirect
         /// <returns>Nothing</returns>
         private async Task ProcessBatchAsync(string providerName)
         {
-            var transactionId = Guid.NewGuid().ToString("D");
+            var transactionId = Util.Uuid();
             _transactionService.FireTransactionBegin(transactionId);
 
             try
