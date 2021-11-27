@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
@@ -19,6 +20,9 @@ namespace AspNetCore.ExtDirect
             configure?.Invoke(options);
             new ExtDirectOptionsValidator().ValidateAndThrow(options);
             services.AddSingleton(options);
+
+            // Action context accessor
+            services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 
             // Collect ExtDirect handlers
             var repository = new ExtDirectHandlerRepository(services.BuildServiceProvider());

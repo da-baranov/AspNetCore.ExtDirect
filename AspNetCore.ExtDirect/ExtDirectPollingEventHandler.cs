@@ -1,13 +1,12 @@
 ﻿using AspNetCore.ExtDirect.Meta;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect
@@ -22,23 +21,19 @@ namespace AspNetCore.ExtDirect
         private readonly string _providerName;
         private readonly ExtDirectHandlerRepository _repository;
         private readonly IServiceProvider _serviceProvider;
-        private readonly QueryString _queryString;
-        private readonly IModelBinderFactory _modelBinderFactory;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ControllerContext _controllerContext;
 
-        internal ExtDirectPollingEventHandler(IServiceProvider serviceProvider, 
-                                              string providerName,
-                                              QueryString queryString)
+        internal ExtDirectPollingEventHandler(IServiceProvider serviceProvider,
+                                              ControllerContext controllerContext,
+                                              string providerName)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _controllerContext = controllerContext ?? throw new ArgumentNullException(nameof(controllerContext));
             _providerName = !string.IsNullOrWhiteSpace(providerName) ? providerName : throw new ArgumentNullException(nameof(providerName));
-            _queryString = queryString;
 
             _localizerFactory = serviceProvider.GetService<IStringLocalizerFactory>();
             _localizer = _localizerFactory.Create(typeof(Properties.Resources));
             _repository = _serviceProvider.GetService<ExtDirectHandlerRepository>();
-            _modelBinderFactory = serviceProvider.GetService<IModelBinderFactory>();
-            _httpContextAccessor = serviceProvider.GetService<IHttpContextAccessor>();
         }
 
         public async Task<IEnumerable<PollResponse>> ExecuteAsync()
@@ -57,14 +52,22 @@ namespace AspNetCore.ExtDirect
                 var handlerMethodInfo = handlerMethodInfoType.GetMethod("Invoke");
                 var handlerMethodInfoParameters = handlerMethodInfo.GetParameters().ToList();
 
-                
-                if (handlerMethodInfoParameters.Count == 1) // the "sender" argument is func, [0] argument is polling events source
+                // Here the "sender" argument is func itself
+                // First argument is a class that was registered as polling events source
+                if (handlerMethodInfoParameters.Count == 1) 
                 {
                     result = handlerMethodInfo.Invoke(tmp, new object[] { handlerInstance }) as IEnumerable<PollResponse>;
                 }
+
+                // Here the "sender" argument is func itself
+                // First argument is a class that was registered as polling events source
+                // Second argument is handler method parameters
                 else if (handlerMethodInfoParameters.Count == 2)
                 {
-                    result = null;
+                    var argumentType = handlerMethodInfoParameters[1].ParameterType;
+                    var modelBinder = new ExtDirectModelBinder(_serviceProvider, _controllerContext);
+                    var args = await modelBinder.BindAsync(argumentType);
+                    result = handlerMethodInfo.Invoke(tmp, new object[] { handlerInstance, args }) as IEnumerable<PollResponse>;
                 }
                 else
                 {

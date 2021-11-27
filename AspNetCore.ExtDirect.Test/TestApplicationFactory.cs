@@ -59,9 +59,12 @@ namespace AspNetCore.ExtDirect.Test
                     });
                     services.AddExtDirectPollingApi(options =>
                     {
-                        options.AddPollingHandler<TestPollingHandler>();
+                        options.AddPollingHandler<TestPollingHandler, TestPerson>(
+                            (sender, args) => sender.GetEvents(args)
+                        );
                     });
                 });
+
                 webBuilder.Configure(app =>
                 {
                     app.UseRouting();

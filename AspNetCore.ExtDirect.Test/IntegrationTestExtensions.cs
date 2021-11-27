@@ -37,7 +37,7 @@ namespace AspNetCore.ExtDirect.Test
 
         public static async Task<List<PollResponse>> CallPolling(this HttpClient client)
         {
-            var response = await client.GetAsync("/" + new ExtDirectOptions().PollingRouteUrl + "/POLLING_API");
+            var response = await client.GetAsync("/" + new ExtDirectOptions().PollingRouteUrl + "/POLLING_API?FirstName=John&LastName=Doe");
             var responseString = await response.Content.ReadAsStringAsync();
             var result = JsonConvert.DeserializeObject<List<PollResponse>>(responseString, Utils.Util.DefaultSerializerSettings);
             return result;

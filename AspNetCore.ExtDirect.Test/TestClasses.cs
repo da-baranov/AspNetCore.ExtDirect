@@ -38,7 +38,7 @@ namespace AspNetCore.ExtDirect.Test
 
     public class TestPollingHandler
     {
-        public IEnumerable<PollResponse> GetEvents(object args)
+        public IEnumerable<PollResponse> GetEvents(TestPerson testPerson)
         {
             for (var i = 0; i < 1000; i++)
             {

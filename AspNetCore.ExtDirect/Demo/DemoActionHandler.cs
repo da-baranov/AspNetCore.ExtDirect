@@ -4,11 +4,19 @@ using System.Transactions;
 
 namespace AspNetCore.ExtDirect.Demo
 {
-    public class PersonName
+    public class PersonAddress
+    {
+        public string Country { get; set; }
+        public string City { get; set; }
+    }
+
+    public class Person
     {
         public string Prefix { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
+
+        public PersonAddress Address { get; set; }
     }
 
     [ExtDirectAction("Demo")]
@@ -64,7 +72,7 @@ namespace AspNetCore.ExtDirect.Demo
             return new { a, b, c };
         }
 
-        public string MakeName(PersonName personName)
+        public string MakeName(Person personName)
         {
             return $"{personName.Prefix} {personName.FirstName} {personName.LastName}".Trim();
         }

@@ -1,6 +1,8 @@
 ﻿using AspNetCore.ExtDirect.Meta;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
 using System.Text;
@@ -20,7 +22,6 @@ namespace AspNetCore.ExtDirect
         private readonly ExtDirectOptions _options;
         private readonly ExtDirectHandlerRepository _repository;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IModelBinder _modelBinder;
 
         public ExtDirectApiController(IServiceProvider serviceProvider,
                                       ExtDirectHandlerRepository repository,
@@ -68,10 +69,9 @@ namespace AspNetCore.ExtDirect
         /// <param name="providerName"></param>
         /// <see href="https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html"/>
         [AcceptVerbs("GET")]
-        public async Task<IActionResult> OnEvents(
-            [FromRoute] string providerName)
+        public async Task<IActionResult> OnEvents([FromRoute] string providerName)
         {
-            var handler = new ExtDirectPollingEventHandler(_serviceProvider, providerName, Request.QueryString);
+            var handler = new ExtDirectPollingEventHandler(_serviceProvider, ControllerContext, providerName);
             var result = await handler.ExecuteAsync();
             return await Json(result);
         }

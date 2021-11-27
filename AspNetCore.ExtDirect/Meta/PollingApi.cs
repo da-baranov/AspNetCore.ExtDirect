@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
 namespace AspNetCore.ExtDirect.Meta
 {
@@ -9,7 +7,6 @@ namespace AspNetCore.ExtDirect.Meta
     {
         public PollingApi()
         {
-
         }
 
         internal PollingApi(ExtDirectPollingEventHandlerOptions options)
@@ -29,8 +26,6 @@ namespace AspNetCore.ExtDirect.Meta
             }
         }
 
-        internal string Name { get; set; }
-
         /// <summary>
         /// The identifier for the Polling API Provider. This is useful when there are more than one API in use.
         /// </summary>
@@ -46,7 +41,14 @@ namespace AspNetCore.ExtDirect.Meta
         /// </summary>
         public string Url { get; set; }
 
-
+        /// <summary>
+        /// All the registered polling handler types
+        /// </summary>
         internal Dictionary<Type, object> HandlerTypes { get; private set; } = new();
+
+        /// <summary>
+        /// The name for the Polling API Provider.
+        /// </summary>
+        internal string Name { get; set; }
     }
 }

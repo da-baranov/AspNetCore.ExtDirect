@@ -21,7 +21,7 @@
                 Ext.direct.Manager.addProvider({
                     id: 'DemoPolling',
                     type: 'polling',
-                    url: Ext.POLLING_DATA_API.url,
+                    url: Ext.POLLING_DATA_API.url + "?firstName=John&lastName=Doe&address.country=USA&address.city=Boston",
                     interval: 1000,
                 });
                 Ext.direct.Manager.getProvider('DemoPolling').disconnect();
@@ -30,7 +30,7 @@
                 Ext.direct.Manager.addProvider({
                     id: 'ChatPolling',
                     type: 'polling',
-                    url: Ext.POLLING_CHAT_API.url,
+                    url: Ext.POLLING_CHAT_API.url + "?firstName=John&lastName=Doe&address.country=USA&address.city=Boston",
                     interval: 1000,
                 });
 
