@@ -9,21 +9,21 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AspNetCore.ExtDirect
+namespace AspNetCore.ExtDirect.Binders
 {
     /// <summary>
     /// Converts Ext Direct JSON requests to an object
     /// </summary>
-    internal class ExtDirectRequestModelBinder : IModelBinder
+    internal sealed class ExtDirectRemotingRequestModelBinder : IModelBinder
     {
         // TODO: https://stackoverflow.com/questions/52350447/in-asp-net-core-how-can-i-get-the-multipart-form-data-from-the-body
 
-        public ExtDirectRequestModelBinder()
+        public ExtDirectRemotingRequestModelBinder()
         {
         }
 
         /// <summary>
-        /// This method accepts both RemotingRequest and array of RemotingRequest, and performs some basic validation of input data
+        /// This method accepts either RemotingRequest or array of RemotingRequest, and performs some basic validation of input data
         /// </summary>
         /// <param name="bindingContext"></param>
         /// <returns></returns>
@@ -34,7 +34,12 @@ namespace AspNetCore.ExtDirect
             var localizer = localizerFactory.Create(typeof(Properties.Resources));
 
             var contentType = new ContentType(bindingContext.HttpContext.Request.ContentType);
-            if (!string.Equals(contentType.MediaType, ExtDirectConstants.APPLICATION_JSON, StringComparison.InvariantCultureIgnoreCase))
+            if 
+            (
+                !string.Equals(contentType.MediaType, ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON, StringComparison.InvariantCultureIgnoreCase) &&
+                !string.Equals(contentType.MediaType, ExtDirectConstants.CONTENT_TYPE_TEXT_JSON, StringComparison.InvariantCultureIgnoreCase) &&
+                !string.Equals(contentType.MediaType, ExtDirectConstants.CONTENT_TYPE_TEXT_PLAIN, StringComparison.InvariantCultureIgnoreCase)
+            )
             {
                 bindingContext.Result = ModelBindingResult.Failed();
                 bindingContext.ModelState.TryAddModelError(bindingContext.ModelName,
@@ -57,7 +62,7 @@ namespace AspNetCore.ExtDirect
 
             if (string.IsNullOrWhiteSpace(json))
             {
-                // Valid content-type but empty body. Consider it's OK
+                // Valid content-type but empty body? Consider this is OK
                 batch = new RemotingRequestBatch();
             }
             else

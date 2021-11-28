@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AspNetCore.ExtDirect.Demo\AspNetCore.ExtDirect.Demo.csproj" />
     <ProjectReference Include="..\AspNetCore.ExtDirect\AspNetCore.ExtDirect.csproj" />
   </ItemGroup>
 

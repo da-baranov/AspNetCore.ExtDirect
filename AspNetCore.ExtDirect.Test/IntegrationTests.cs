@@ -1,8 +1,10 @@
+using AspNetCore.ExtDirect.Demo;
 using Microsoft.AspNetCore.Mvc.Testing;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect.Test
@@ -10,12 +12,12 @@ namespace AspNetCore.ExtDirect.Test
     public class IntegrationTests
     {
         private HttpClient _client;
-        private TestApplicationFactory _factory;
+        private DemoApplicationFactory _factory;
 
         [SetUp]
         public void Setup()
         {
-            _factory = new TestApplicationFactory();
+            _factory = new DemoApplicationFactory();
             _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
             {
                 BaseAddress = new System.Uri("http://localhost:10000/")
@@ -25,7 +27,7 @@ namespace AspNetCore.ExtDirect.Test
         [Test]
         public async Task Test_AsyncMethod()
         {
-            var rv = await _client.CallOrdered<TestPerson>("Test", "getPerson");
+            var rv = await _client.CallOrdered<Person>("Test", "getPerson");
             Assert.IsTrue(rv.LastName == "Doe");
         }
 
@@ -40,13 +42,13 @@ namespace AspNetCore.ExtDirect.Test
         [Test]
         public async Task Test_ComplexData()
         {
-            var person = new TestPerson
+            var person = new Person
             {
                 Prefix = "Mr",
                 FirstName = "John",
                 LastName = "Doe",
                 GivenName = "Adam",
-                Address = new TestPersonAddress
+                Address = new PersonAddress
                 {
                     Country = "Sweden",
                     City = "Stockholm",
@@ -55,7 +57,7 @@ namespace AspNetCore.ExtDirect.Test
                 }
             };
             person.Phones.Add("+46 11 1234 5678");
-            var result = await _client.CallOrdered<TestPerson>("Test", "EchoPerson", person);
+            var result = await _client.CallOrdered<Person>("Test", "EchoPerson", person);
             Assert.IsTrue(result.Prefix == person.Prefix &&
                           result.FirstName == person.FirstName &&
                           result.LastName == person.LastName &&

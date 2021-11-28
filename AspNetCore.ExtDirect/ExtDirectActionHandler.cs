@@ -25,6 +25,12 @@ namespace AspNetCore.ExtDirect
         private readonly ExtDirectTransactionService _transactionService;
         private List<object> _result;
 
+        /// <summary>
+        /// Constructs an instance of ExtDirectActionHandler
+        /// </summary>
+        /// <param name="serviceProvider">ASP.NET Core application service provider</param>
+        /// <param name="providerName">Name of Ext Direct remoting provider</param>
+        /// <param name="batch">Batch to be executed</param>
         internal ExtDirectActionHandler(IServiceProvider serviceProvider, string providerName, RemotingRequestBatch batch)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -38,6 +44,10 @@ namespace AspNetCore.ExtDirect
             _localizer = _localizerFactory.Create(typeof(Properties.Resources));
         }
 
+        /// <summary>
+        /// Executes the Ext Direct batch passed as constructor argument
+        /// </summary>
+        /// <returns></returns>
         internal async Task<List<object>> ExecuteAsync()
         {
             await ValidateBatchAsync();
@@ -227,6 +237,7 @@ namespace AspNetCore.ExtDirect
                 return await Task.FromResult(exception);
             }
         }
+
         /// <summary>
         /// Performs simple batch validation
         /// </summary>

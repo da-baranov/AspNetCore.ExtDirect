@@ -15,28 +15,27 @@ namespace AspNetCore.ExtDirect
         }
 
         /// <summary>
-        /// Defines a route that AspNetCore Ext Direct controller uses to handle client Remoting Manager requests, e.g /ExtDirect
+        /// Defines a route that describes client-side API and should be referenced by client ExtJS application
         /// </summary>
-        public string RemotingRouteUrl { get; set; } = "ExtDirect";
+        /// <example>
+        /// &lt;script src="~/ExtDirect.js"&gt;&lt;/script&gt;
+        /// </example>
+        public string Url { get; set; } = "ExtDirect";
 
-        /// <summary>
-        /// Defines a route that AspNetCore Ext Direct controller uses to handle client Polling Manager requests, e.g /ExtDirectEvents
-        /// </summary>
-        public string PollingRouteUrl { get; set; } = "ExtDirectEvents";
+        public string ClientApiUrl => Url + ".js";
+
+        public string RemotingEndpointUrl => Url + "/remoting";
+
+        public string PollingEndpointUrl => Url + "/polling";
     }
 
     internal class ExtDirectOptionsValidator : AbstractValidator<ExtDirectOptions>
     {
         public ExtDirectOptionsValidator()
         {
-            RuleFor(options => options.PollingRouteUrl)
+            RuleFor(options => options.Url)
                 .NotNull()
                 .NotEmpty();
-
-            RuleFor(options => options.RemotingRouteUrl)
-                .NotNull()
-                .NotEmpty()
-                .NotEqual(o => o.PollingRouteUrl);
         }
     }
 }

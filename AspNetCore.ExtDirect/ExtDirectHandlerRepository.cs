@@ -12,7 +12,7 @@ using System.Text;
 namespace AspNetCore.ExtDirect
 {
     /// <summary>
-    /// For internal use
+    /// For internal use. This class is used as a singleton.
     /// </summary>
     public sealed class ExtDirectHandlerRepository
     {
@@ -121,7 +121,7 @@ namespace AspNetCore.ExtDirect
             return PollingApis.Values;
         }
 
-        internal string ToApi(IUrlHelper urlHelper, string remotingRoute, string pollingRoute)
+        internal string ToApi(IUrlHelper urlHelper, ExtDirectOptions options)
         {
             var script = new StringBuilder();
 
@@ -131,7 +131,7 @@ namespace AspNetCore.ExtDirect
             foreach (var remotingApi in ToRemotingApi())
             {
                 script.AppendLine($"Ext.{remotingApi.Name} = ");
-                remotingApi.Url = urlHelper.Content("~/" + remotingRoute + "/" + remotingApi.Name);
+                remotingApi.Url = urlHelper.Content("~/" + options.RemotingEndpointUrl + "/" + remotingApi.Name);
                 script.Append(Util.JsonSerialize(remotingApi));
                 script.Append(';');
                 script.AppendLine();
@@ -142,7 +142,7 @@ namespace AspNetCore.ExtDirect
             foreach (var pollingApi in ToPollingApi())
             {
                 script.AppendLine($"Ext.{pollingApi.Name} = ");
-                pollingApi.Url = urlHelper.Content("~/" + pollingRoute + "/" + pollingApi.Name);
+                pollingApi.Url = urlHelper.Content("~/" + options.PollingEndpointUrl + "/" + pollingApi.Name);
                 script.Append(Util.JsonSerialize(pollingApi));
                 script.Append(';');
                 script.AppendLine();

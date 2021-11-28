@@ -23,11 +23,29 @@ namespace AspNetCore.ExtDirect.Demo
             {
                 // TODO: modify options here
             });
+
+            // Registering ExtDirect remoting handlers. Navigate /ExtDirect.js to 
             services.AddExtDirectRemotingApi(options =>
             {
                 options.AddActionHandler<DemoActionHandler>("Demo");
-                options.AddActionHandler<ChatHandler>("Chat");
+                options.AddActionHandler<DemoChatHandler>("Chat");
+                options.AddActionHandler<TestHandler>("Test");
             });
+
+            services.AddExtDirectRemotingApi(options =>
+            {
+                options.Name = "CALCULATOR_API_1";
+                options.Namespace = "Calculator1";
+                options.AddActionHandler<CalculatorService>("Calculator");
+            });
+
+            services.AddExtDirectRemotingApi(options =>
+            {
+                options.Name = "CALCULATOR_API_2";
+                options.Namespace = "Calculator2";
+                options.AddActionHandler<CalculatorService>("Calculator");
+            });
+
             services.AddExtDirectPollingApi(options =>
             {
                 options.Name = "POLLING_DATA_API";
@@ -36,7 +54,12 @@ namespace AspNetCore.ExtDirect.Demo
             services.AddExtDirectPollingApi(options =>
             {
                 options.Name = "POLLING_CHAT_API";
-                options.AddPollingHandler<ChatHandler>((sender) => sender.GetEvents());
+                options.AddPollingHandler<DemoChatHandler>((sender) => sender.GetEvents());
+            });
+            services.AddExtDirectPollingApi(options =>
+            {
+                options.Name = "POLLING_TEST_API";
+                options.AddPollingHandler<TestPollingHandler, Person>((sender, person) => sender.GetEvents(person));
             });
         }
 

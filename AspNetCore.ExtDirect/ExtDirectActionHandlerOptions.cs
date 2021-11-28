@@ -81,7 +81,7 @@ namespace AspNetCore.ExtDirect
         {
 #pragma warning disable CA1416 // Validate platform compatibility
 
-            var provider = CodeDomProvider.CreateProvider("C#");
+            using var provider = CodeDomProvider.CreateProvider("C#");
             RuleFor(row => row.Name)
                 .NotNull()
                 .NotEmpty()

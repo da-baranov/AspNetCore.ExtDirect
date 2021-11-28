@@ -43,6 +43,44 @@
             }
         },
 
+        "#cmdCalculate1": {
+            click: function () {
+                Calculator1.Calculator.add(2, 2, function (response, e) {
+                    if (e.type === "exception") {
+                        Ext.Msg.show(
+                            {
+                                title: "Error",
+                                message: e.message,
+                                icon: Ext.MessageBox.ERROR,
+                                buttons: Ext.MessageBox.OK
+                            }
+                        );
+                    } else {
+                        Ext.Msg.alert('AspNetCore.ExtDirect', response);
+                    }
+                });
+            }
+        },
+
+        "#cmdCalculate2": {
+            click: function () {
+                Calculator2.Calculator.add(2, 2, function (response, e) {
+                    if (e.type === "exception") {
+                        Ext.Msg.show(
+                            {
+                                title: "Error",
+                                message: e.message,
+                                icon: Ext.MessageBox.ERROR,
+                                buttons: Ext.MessageBox.OK
+                            }
+                        );
+                    } else {
+                        Ext.Msg.alert('AspNetCore.ExtDirect', response);
+                    }
+                });
+            }
+        },
+
         "#cmdHello": {
             click: function () {
                 const name = this.getViewModel().get("name");

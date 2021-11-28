@@ -1,7 +1,6 @@
-﻿using AspNetCore.ExtDirect.Meta;
-using Microsoft.AspNetCore.Http;
+﻿using AspNetCore.ExtDirect.Binders;
+using AspNetCore.ExtDirect.Meta;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using System;
@@ -43,31 +42,36 @@ namespace AspNetCore.ExtDirect
                 throw new Exception(_localizer[nameof(Properties.Resources.ERR_CANNOT_FIND_POLLING_HANDLER), _providerName]);
             }
 
-            var result = default(IEnumerable<PollResponse>);
+            var result = new List<PollResponse>();
+
             foreach (var pollingHandlerType in pollingApi.HandlerTypes.Keys)
             {
+                // Creates an instance of polling event handler using dependency injection
                 var handlerInstance = ActivatorUtilities.CreateInstance(_serviceProvider, pollingHandlerType);
                 var tmp = pollingApi.HandlerTypes[pollingHandlerType];
+
                 var handlerMethodInfoType = tmp.GetType();
+
                 var handlerMethodInfo = handlerMethodInfoType.GetMethod("Invoke");
+
                 var handlerMethodInfoParameters = handlerMethodInfo.GetParameters().ToList();
 
-                // Here the "sender" argument is func itself
-                // First argument is a class that was registered as polling events source
-                if (handlerMethodInfoParameters.Count == 1) 
+                if (handlerMethodInfoParameters.Count == 1)
                 {
-                    result = handlerMethodInfo.Invoke(tmp, new object[] { handlerInstance }) as IEnumerable<PollResponse>;
+                    // obj argument is func itself (pointer to the polling event source non-static method)
+                    // [0] argument is an instance of polling events source
+                    result.AddRange(handlerMethodInfo.Invoke(tmp, new object[] { handlerInstance }) as IEnumerable<PollResponse>);
                 }
 
-                // Here the "sender" argument is func itself
-                // First argument is a class that was registered as polling events source
-                // Second argument is handler method parameters
                 else if (handlerMethodInfoParameters.Count == 2)
                 {
                     var argumentType = handlerMethodInfoParameters[1].ParameterType;
-                    var modelBinder = new ExtDirectModelBinder(_serviceProvider, _controllerContext);
+                    var modelBinder = new ExtDirectGenericModelBinder(_serviceProvider, _controllerContext);
                     var args = await modelBinder.BindAsync(argumentType);
-                    result = handlerMethodInfo.Invoke(tmp, new object[] { handlerInstance, args }) as IEnumerable<PollResponse>;
+                    // obj argument is func itself (pointer to the polling event source non-static method)
+                    // [0] argument is an instance of polling events source
+                    // [1] argument is a polling handler method argument
+                    result.AddRange(handlerMethodInfo.Invoke(tmp, new object[] { handlerInstance, args }) as IEnumerable<PollResponse>);
                 }
                 else
                 {

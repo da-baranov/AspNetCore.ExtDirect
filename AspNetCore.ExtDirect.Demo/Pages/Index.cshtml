@@ -34,8 +34,10 @@
                     interval: 1000,
                 });
 
-                // Add remoting provider
+                // Add remoting providers
                 Ext.direct.Manager.addProvider(Ext.REMOTING_API);
+                Ext.direct.Manager.addProvider(Ext.CALCULATOR_API_1);
+                Ext.direct.Manager.addProvider(Ext.CALCULATOR_API_2);
 
                 // Create main view
                 Ext.create("ExtDirectDemo.view.Index", {

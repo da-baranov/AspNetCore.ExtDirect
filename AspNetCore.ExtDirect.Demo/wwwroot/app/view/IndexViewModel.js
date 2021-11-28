@@ -3,7 +3,7 @@
     alias: "viewmodel.IndexViewModel",
 
     data: {
-        name: "John Smith",
+        name: "John Doe",
 
         orderedArguments: {
             a: "Some string",

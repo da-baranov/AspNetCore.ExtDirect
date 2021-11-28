@@ -4,18 +4,18 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
-namespace AspNetCore.ExtDirect
+namespace AspNetCore.ExtDirect.Binders
 {
     /// <summary>
     /// HTTP request to model converter
     /// </summary>
-    internal class ExtDirectModelBinder
+    internal sealed class ExtDirectGenericModelBinder
     {
         private readonly ControllerContext _controllerContext;
         private readonly IModelBinderFactory _modelBinderFactory;
         private readonly IModelMetadataProvider _modelMetadataProvider;
 
-        public ExtDirectModelBinder(IServiceProvider serviceProvider, ControllerContext controllerContext)
+        public ExtDirectGenericModelBinder(IServiceProvider serviceProvider, ControllerContext controllerContext)
         {
             if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));
             _controllerContext = controllerContext ?? throw new ArgumentNullException(nameof(controllerContext));

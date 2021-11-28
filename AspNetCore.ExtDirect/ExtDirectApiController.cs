@@ -1,4 +1,5 @@
-﻿using AspNetCore.ExtDirect.Meta;
+﻿using AspNetCore.ExtDirect.Binders;
+using AspNetCore.ExtDirect.Meta;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -41,10 +42,11 @@ namespace AspNetCore.ExtDirect
         /// <remarks>A reference to this API must be known to ExtJS client application, e.g. &lt;script src="~/ExtDirect.js"&gt;></remarks>
         /// <see href="https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html"/>
         [AcceptVerbs("GET")]
+        [Produces(ExtDirectConstants.CONTENT_TYPE_TEXT_JAVASCRIPT)]
         public async Task<IActionResult> Index()
         {
-            var result = _repository.ToApi(Url, _options.RemotingRouteUrl, _options.PollingRouteUrl);
-            return await Task.FromResult(Content(result, ExtDirectConstants.TEXT_JAVASCRIPT, Encoding.UTF8));
+            var result = _repository.ToApi(Url, _options);
+            return await Task.FromResult(Content(result, ExtDirectConstants.CONTENT_TYPE_TEXT_JAVASCRIPT, Encoding.UTF8));
         }
 
         /// <summary>
@@ -54,9 +56,11 @@ namespace AspNetCore.ExtDirect
         /// <param name="request"></param>
         /// <see href="https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html"/>
         [AcceptVerbs("POST")]
+        [Consumes(ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON, ExtDirectConstants.CONTENT_TYPE_TEXT_JSON, ExtDirectConstants.CONTENT_TYPE_TEXT_PLAIN)]
+        [Produces(ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON)]
         public async Task<IActionResult> OnAction(
             [FromRoute] string providerName,
-            [FromBody][ModelBinder(typeof(ExtDirectRequestModelBinder))] RemotingRequestBatch request)
+            [FromBody][ModelBinder(typeof(ExtDirectRemotingRequestModelBinder))] RemotingRequestBatch request)
         {
             var handler = new ExtDirectActionHandler(_serviceProvider, providerName, request);
             var result = await handler.ExecuteAsync();
@@ -69,6 +73,7 @@ namespace AspNetCore.ExtDirect
         /// <param name="providerName"></param>
         /// <see href="https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html"/>
         [AcceptVerbs("GET")]
+        [Produces(ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON)]
         public async Task<IActionResult> OnEvents([FromRoute] string providerName)
         {
             var handler = new ExtDirectPollingEventHandler(_serviceProvider, ControllerContext, providerName);
@@ -81,7 +86,9 @@ namespace AspNetCore.ExtDirect
         /// </summary>
         private new async Task<IActionResult> Json(object data)
         {
-            return await Task.FromResult(Content(JsonConvert.SerializeObject(data, Utils.Util.DefaultSerializerSettings), ExtDirectConstants.APPLICATION_JSON, Encoding.UTF8));
+            var json = JsonConvert.SerializeObject(data, Utils.Util.DefaultSerializerSettings);
+            var content = Content(json, ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON, Encoding.UTF8);
+            return await Task.FromResult(content);
         }
     }
 }

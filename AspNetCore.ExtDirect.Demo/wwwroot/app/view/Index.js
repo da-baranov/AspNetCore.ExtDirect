@@ -26,12 +26,38 @@
                 {
                     xtype: "textfield",
                     reference: "txtName",
+                    bind: {
+                        value: "{name}"
+                    },
                     fieldLabel: "Your name"
                 },
                 {
                     xtype: "button",
                     text: "Say hello",
                     itemId: "cmdHello"
+                }
+            ]
+        },
+
+        {
+            xtype: "container",
+            padding: 10,
+            html: "<strong>Calculator service registered in various namespaces</strong>"
+        },
+        {
+            xtype: "container",
+            layout: "hbox",
+            padding: 10,
+            items: [
+                {
+                    xtype: "button",
+                    text: "Calculate 2 + 2 using Calculator service from namespace Calculator1",
+                    itemId: "cmdCalculate1"
+                },
+                {
+                    xtype: "button",
+                    text: "Calculate 2 + 2 using Calculator service from namespace Calculator2",
+                    itemId: "cmdCalculate2"
                 }
             ]
         },
@@ -145,7 +171,7 @@
         {
             xtype: "container",
             padding: 10,
-            html: "<strong>Make person full name</strong>"
+            html: "<strong>Make person full name using named arguments action handler</strong>"
         },
         {
             xtype: "container",
@@ -210,7 +236,7 @@
                 {
                     xtype: "button",
                     bind: {
-                        text: "{pollingEnabled ? 'Stop events' : 'Start events'}"
+                        text: "{pollingEnabled ? 'Stop polling' : 'Start polling'}"
                     },
                     itemId: "cmdEvents",
                     margin: 2
