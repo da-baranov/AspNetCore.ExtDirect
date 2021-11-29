@@ -15,7 +15,7 @@ namespace AspNetCore.ExtDirect
     /// <summary>
     /// Executes Ext Direct remoting requests
     /// </summary>
-    internal sealed class ExtDirectActionHandler
+    internal sealed class ExtDirectRemotingHandler
     {
         private readonly RemotingRequestBatch _batch;
         private readonly IStringLocalizer _localizer;
@@ -34,7 +34,7 @@ namespace AspNetCore.ExtDirect
         /// <param name="serviceProvider">ASP.NET Core application service provider</param>
         /// <param name="providerName">Name of Ext Direct remoting provider</param>
         /// <param name="batch">Batch to be executed</param>
-        internal ExtDirectActionHandler(IServiceProvider serviceProvider, string providerName, RemotingRequestBatch batch)
+        internal ExtDirectRemotingHandler(IServiceProvider serviceProvider, string providerName, RemotingRequestBatch batch)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _providerName = providerName;

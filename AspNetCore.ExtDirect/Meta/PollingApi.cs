@@ -9,7 +9,7 @@ namespace AspNetCore.ExtDirect.Meta
         {
         }
 
-        internal PollingApi(ExtDirectPollingEventHandlerOptions options)
+        internal PollingApi(ExtDirectPollingApiOptions options)
         {
             Name = options.Name;
             Id = options.Id;

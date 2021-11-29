@@ -41,7 +41,7 @@ namespace AspNetCore.ExtDirect
         /// Registers and ExtDirect polling handler
         /// </summary>
         /// <param name="options">Handler options</param>
-        internal void RegisterPollingHandler(ExtDirectPollingEventHandlerOptions options)
+        internal void RegisterPollingHandler(ExtDirectPollingApiOptions options)
         {
             var pollingApi = new PollingApi(options);
 
@@ -56,10 +56,10 @@ namespace AspNetCore.ExtDirect
         /// Registers an ExtDirect action handler
         /// </summary>
         /// <param name="options">Handler options</param>
-        internal void RegisterRemotingHandler(ExtDirectActionHandlerOptions options)
+        internal void RegisterRemotingHandler(ExtDirectRemotingApiOptions options)
         {
             // Validation
-            new ExtDirectActionHandlerOptionsValidator().ValidateAndThrow(options);
+            new ExtDirectRemotingApiOptionsValidator().ValidateAndThrow(options);
 
             // Saving for API
             var remotingApi = new RemotingApi(options);

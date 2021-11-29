@@ -13,7 +13,7 @@ namespace AspNetCore.ExtDirect
     /// <summary>
     /// Handles Ext Direct polling requests
     /// </summary>
-    internal sealed class ExtDirectPollingEventHandler
+    internal sealed class ExtDirectPollingHandler
     {
         private readonly IStringLocalizer _localizer;
         private readonly IStringLocalizerFactory _localizerFactory;
@@ -22,7 +22,7 @@ namespace AspNetCore.ExtDirect
         private readonly IServiceProvider _serviceProvider;
         private readonly ControllerContext _controllerContext;
 
-        internal ExtDirectPollingEventHandler(IServiceProvider serviceProvider,
+        internal ExtDirectPollingHandler(IServiceProvider serviceProvider,
                                               ControllerContext controllerContext,
                                               string providerName)
         {

@@ -58,7 +58,7 @@ namespace AspNetCore.ExtDirect
             [FromRoute] string providerName,
             [FromBody][ModelBinder(typeof(ExtDirectRemotingRequestModelBinder))] RemotingRequestBatch request)
         {
-            var handler = new ExtDirectActionHandler(_serviceProvider, providerName, request);
+            var handler = new ExtDirectRemotingHandler(_serviceProvider, providerName, request);
             var result = await handler.ExecuteAsync();
             return await Json(result);
         }
@@ -72,7 +72,7 @@ namespace AspNetCore.ExtDirect
         [Produces(ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON)]
         public async Task<IActionResult> OnEvents([FromRoute] string providerName)
         {
-            var handler = new ExtDirectPollingEventHandler(_serviceProvider, ControllerContext, providerName);
+            var handler = new ExtDirectPollingHandler(_serviceProvider, ControllerContext, providerName);
             var result = await handler.ExecuteAsync();
             return await Json(result);
         }

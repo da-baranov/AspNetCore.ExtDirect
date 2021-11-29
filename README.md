@@ -120,13 +120,13 @@ public class Startup
         // Register Ext Direct remoting handlers
         services.AddExtDirectRemotingApi(options =>
         {
-            options.AddActionHandler<CalculatorService>("Calculator");
+            options.AddHandler<CalculatorService>("Calculator");
         });
     
         // Register Ext Direct polling handlers
         services.AddExtDirectPollingApi(options =>
         {
-            options.AddPollingHandler<PollingService>((sender) => sender.GetEvents());
+            options.AddHandler<PollingService>((sender) => sender.GetEvents());
         });
         ...
     }
@@ -218,7 +218,7 @@ public void ConfigureServices(IServiceCollection services)
         // This will create remoting handler endpoint at /extdirect/remoting/REMOTING_API_1
         options.Name = "REMOTING_API_1";
         options.Namespace = "CalculatorNS1";
-        options.AddActionHandler<CalculatorService>("Calculator");
+        options.AddHandler<CalculatorService>("Calculator");
     });
 
     // Register another Ext Direct remoting handler
@@ -227,7 +227,7 @@ public void ConfigureServices(IServiceCollection services)
         // This will create another remoting handler endpoint at /extdirect/remoting/REMOTING_API_2
         options.Name = "REMOTING_API_2";
         options.Namespace = "CalculatorNS2";
-        options.AddActionHandler<CalculatorService>("Calculator");
+        options.AddHandler<CalculatorService>("Calculator");
     });
     ...
 }
@@ -308,12 +308,12 @@ public void ConfigureServices(IServiceCollection services)
 {
     services.AddExtDirectRemotingApi(options =>
     {
-        options.AddActionHandler<CalculatorService>("Calculator");
+        options.AddHandler<CalculatorService>("Calculator");
     });
 
     services.AddExtDirectPollingApi(options =>
     {
-        options.AddPollingHandler<PollingService, Filter>((sender, filter) => sender.GetEvents(filter));
+        options.AddHandler<PollingService, Filter>((sender, filter) => sender.GetEvents(filter));
     });
 }
 
@@ -347,16 +347,13 @@ public class PollingService
 {
     public IEnumerable<PollResponse> GetEvents(PollingEventFilter filter)
     {
-        if (filter.EventName == "ondata")
-        {
-            return this
-                .dbContext
-                .Events
-                .Where(row => row.Name == "ondata")
-                .Skip(filter.Skip)
-                .Take(filter.Take)
-                .Select(row => new PollResponse { Name = row.Name, Data = row.Data });
-        }
+        return this
+            .dbContext
+            .Events
+            .Where(row => row.Name == filter.EventName)
+            .Skip(filter.Skip)
+            .Take(filter.Take)
+            .Select(row => new PollResponse { Name = row.Name, Data = row.Data });
     }
 }
 
@@ -371,7 +368,7 @@ public void ConfigureServices(IServiceCollection services)
 
     services.AddExtDirectPollingApi(options =>
     {
-        options.AddPollingHandler<PollingService, PollingEventFilter>((sender, args) => sender.GetEvents(args));
+        options.AddHandler<PollingService, PollingEventFilter>((sender, args) => sender.GetEvents(args));
     }
 }
 
@@ -397,7 +394,7 @@ public void ConfigureServices(IServiceCollection services)
     services.AddExtDirectRemotingApi(options =>
     {
         options.Namespace = "CalculatorNS";
-        options.AddActionHandler<CalculatorService>("Calculator");
+        options.AddHandler<CalculatorService>("Calculator");
     });
 }
 ```

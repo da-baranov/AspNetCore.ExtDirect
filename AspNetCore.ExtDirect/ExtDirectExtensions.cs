@@ -45,13 +45,13 @@ namespace AspNetCore.ExtDirect
         /// <returns>A reference to this instance after the operation has completed</returns>
         public static IServiceCollection AddExtDirectPollingApi(
             this IServiceCollection services,
-            Action<ExtDirectPollingEventHandlerOptions> configure)
+            Action<ExtDirectPollingApiOptions> configure)
         {
             if (services == null) throw new ArgumentNullException(nameof(services));
 
-            var options = new ExtDirectPollingEventHandlerOptions();
+            var options = new ExtDirectPollingApiOptions();
             configure?.Invoke(options);
-            new ExtDirectPollingEventHandlerOptionsValidator().ValidateAndThrow(options);
+            new ExtDirectPollingApiOptionsValidator().ValidateAndThrow(options);
 
             var repository = services.GetRepository();
             repository.RegisterPollingHandler(options);
@@ -64,13 +64,13 @@ namespace AspNetCore.ExtDirect
         /// <param name="services">The IServiceCollection to add services to</param>
         /// <param name="configure">An action to configure Ext Direct Remoting API options</param>
         /// <returns>A reference to this instance after the operation has completed</returns>
-        public static IServiceCollection AddExtDirectRemotingApi(this IServiceCollection services, Action<ExtDirectActionHandlerOptions> configure)
+        public static IServiceCollection AddExtDirectRemotingApi(this IServiceCollection services, Action<ExtDirectRemotingApiOptions> configure)
         {
             if (services == null) throw new ArgumentNullException(nameof(services));
 
-            var options = new ExtDirectActionHandlerOptions();
+            var options = new ExtDirectRemotingApiOptions();
             configure?.Invoke(options);
-            new ExtDirectActionHandlerOptionsValidator().ValidateAndThrow(options);
+            new ExtDirectRemotingApiOptionsValidator().ValidateAndThrow(options);
 
             var repository = services.GetRepository();
             repository.RegisterRemotingHandler(options);

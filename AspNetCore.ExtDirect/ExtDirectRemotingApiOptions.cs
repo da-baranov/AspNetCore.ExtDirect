@@ -11,7 +11,7 @@ namespace AspNetCore.ExtDirect
     /// Options to configure an instance of Ext Direct client RemotingProvider 
     /// </summary>
     /// <see href="https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html"/>
-    public sealed class ExtDirectActionHandlerOptions
+    public sealed class ExtDirectRemotingApiOptions
     {
         private readonly Dictionary<Type, string> _handlerTypes = new();
 
@@ -47,7 +47,7 @@ namespace AspNetCore.ExtDirect
         /// </summary>
         /// <typeparam name="T">Custom action handler type. This class can expose a default public constructor, or a constructor that accepts an instance of IServiceProvider and other ASP.NET web application services</typeparam>
         /// <param name="actionName">By default the library uses type name as an Action name. You override this and assign to a handler some custom name.</param>
-        public void AddActionHandler<T>(string actionName = null)
+        public void AddHandler<T>(string actionName = null)
             where T : class
         {
             var type = typeof(T);
@@ -76,9 +76,9 @@ namespace AspNetCore.ExtDirect
         }
     }
 
-    internal sealed class ExtDirectActionHandlerOptionsValidator : AbstractValidator<ExtDirectActionHandlerOptions>
+    internal sealed class ExtDirectRemotingApiOptionsValidator : AbstractValidator<ExtDirectRemotingApiOptions>
     {
-        public ExtDirectActionHandlerOptionsValidator()
+        public ExtDirectRemotingApiOptionsValidator()
         {
 #pragma warning disable CA1416 // Validate platform compatibility
 

@@ -27,39 +27,39 @@ namespace AspNetCore.ExtDirect.Demo
             // Registering ExtDirect remoting handlers. Navigate /ExtDirect.js to 
             services.AddExtDirectRemotingApi(options =>
             {
-                options.AddActionHandler<DemoActionHandler>("Demo");
-                options.AddActionHandler<DemoChatHandler>("Chat");
-                options.AddActionHandler<TestHandler>("Test");
+                options.AddHandler<DemoActionHandler>("Demo");
+                options.AddHandler<DemoChatHandler>("Chat");
+                options.AddHandler<TestHandler>("Test");
             });
 
             services.AddExtDirectRemotingApi(options =>
             {
                 options.Name = "CALCULATOR_API_1";
                 options.Namespace = "Calculator1";
-                options.AddActionHandler<CalculatorService>("Calculator");
+                options.AddHandler<CalculatorService>("Calculator");
             });
 
             services.AddExtDirectRemotingApi(options =>
             {
                 options.Name = "CALCULATOR_API_2";
                 options.Namespace = "Calculator2";
-                options.AddActionHandler<CalculatorService>("Calculator");
+                options.AddHandler<CalculatorService>("Calculator");
             });
 
             services.AddExtDirectPollingApi(options =>
             {
                 options.Name = "POLLING_DATA_API";
-                options.AddPollingHandler<DemoPollingHandler>((sender) => sender.GetEvents());
+                options.AddHandler<DemoPollingHandler>((sender) => sender.GetEvents());
             });
             services.AddExtDirectPollingApi(options =>
             {
                 options.Name = "POLLING_CHAT_API";
-                options.AddPollingHandler<DemoChatHandler>((sender) => sender.GetEvents());
+                options.AddHandler<DemoChatHandler>((sender) => sender.GetEvents());
             });
             services.AddExtDirectPollingApi(options =>
             {
                 options.Name = "POLLING_TEST_API";
-                options.AddPollingHandler<TestPollingHandler, Person>((sender, person) => sender.GetEvents(person));
+                options.AddHandler<TestPollingHandler, Person>((sender, person) => sender.GetEvents(person));
             });
         }
 

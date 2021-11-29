@@ -13,7 +13,7 @@ namespace AspNetCore.ExtDirect.Meta
 
         }
 
-        internal RemotingApi(ExtDirectActionHandlerOptions options)
+        internal RemotingApi(ExtDirectRemotingApiOptions options)
         {
             if (options == null) throw new ArgumentNullException(nameof(options));
             Id = options.Id;

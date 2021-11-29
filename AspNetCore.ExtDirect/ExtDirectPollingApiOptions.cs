@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect
 {
-    public class ExtDirectPollingEventHandlerOptions
+    public class ExtDirectPollingApiOptions
     {
         private readonly Dictionary<Type, object> _handlerTypes = new();
 
@@ -24,7 +24,7 @@ namespace AspNetCore.ExtDirect
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="T1"></typeparam>
         /// <param name="func"></param>
-        public void AddPollingHandler<T, T1>(Func<T, T1, IEnumerable<PollResponse>> func)
+        public void AddHandler<T, T1>(Func<T, T1, IEnumerable<PollResponse>> func)
             where T : class
             where T1: class
         {
@@ -39,7 +39,7 @@ namespace AspNetCore.ExtDirect
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
-        public void AddPollingHandler<T>(Func<T, IEnumerable<PollResponse>> func)
+        public void AddHandler<T>(Func<T, IEnumerable<PollResponse>> func)
             where T : class
         {
             if (!_handlerTypes.ContainsKey(typeof(T)))
@@ -49,7 +49,7 @@ namespace AspNetCore.ExtDirect
         }
 
 
-        public void AddPollingHandler<T>(Func<T, Task<IEnumerable<PollResponse>>> func)
+        public void AddHandler<T>(Func<T, Task<IEnumerable<PollResponse>>> func)
         {
             if (!_handlerTypes.ContainsKey(typeof(T)))
             {
@@ -57,7 +57,7 @@ namespace AspNetCore.ExtDirect
             }
         }
 
-        public void AddPollingHandler<T, T1>(Func<T, T1, Task<IEnumerable<PollResponse>>> func)
+        public void AddHandler<T, T1>(Func<T, T1, Task<IEnumerable<PollResponse>>> func)
         {
             if (!_handlerTypes.ContainsKey(typeof(T)))
             {
@@ -66,9 +66,9 @@ namespace AspNetCore.ExtDirect
         }
     }
 
-    internal sealed class ExtDirectPollingEventHandlerOptionsValidator : AbstractValidator<ExtDirectPollingEventHandlerOptions>
+    internal sealed class ExtDirectPollingApiOptionsValidator : AbstractValidator<ExtDirectPollingApiOptions>
     {
-        public ExtDirectPollingEventHandlerOptionsValidator()
+        public ExtDirectPollingApiOptionsValidator()
         {
 #pragma warning disable CA1416 // Validate platform compatibility
 
