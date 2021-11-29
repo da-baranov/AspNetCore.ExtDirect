@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AspNetCore.ExtDirect
+namespace AspNetCore.ExtDirect.Attributes
 {
     /// <summary>
     /// Allows a developer to override Ext Direct remoting handler Action name
@@ -13,7 +13,7 @@ namespace AspNetCore.ExtDirect
     /// }
     /// </example>
     [AttributeUsage(AttributeTargets.Class)]
-    public class ExtDirectActionAttribute : Attribute
+    public sealed class ExtDirectActionAttribute : Attribute
     {
         /// <summary>
         /// Gets the name of this action handler

@@ -4,6 +4,7 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect
 {
@@ -18,7 +19,7 @@ namespace AspNetCore.ExtDirect
         public string Name { get; set; } = "POLLING_API";
 
         /// <summary>
-        /// Registers a polling event handler that receives arguments from query string
+        /// Registers a polling event sync handler that receives arguments of type T1 from query string
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="T1"></typeparam>
@@ -34,12 +35,29 @@ namespace AspNetCore.ExtDirect
         }
 
         /// <summary>
-        /// Registers a polling event handler with no arguments
+        /// Registers a polling event sync handler with no arguments
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
         public void AddPollingHandler<T>(Func<T, IEnumerable<PollResponse>> func)
             where T : class
+        {
+            if (!_handlerTypes.ContainsKey(typeof(T)))
+            {
+                _handlerTypes.Add(typeof(T), func);
+            }
+        }
+
+
+        public void AddPollingHandler<T>(Func<T, Task<IEnumerable<PollResponse>>> func)
+        {
+            if (!_handlerTypes.ContainsKey(typeof(T)))
+            {
+                _handlerTypes.Add(typeof(T), func);
+            }
+        }
+
+        public void AddPollingHandler<T, T1>(Func<T, T1, Task<IEnumerable<PollResponse>>> func)
         {
             if (!_handlerTypes.ContainsKey(typeof(T)))
             {

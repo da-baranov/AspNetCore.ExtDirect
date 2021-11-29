@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using AspNetCore.ExtDirect.Attributes;
+using FluentValidation;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
@@ -45,7 +46,7 @@ namespace AspNetCore.ExtDirect
         /// Registers a custom class as an Ext Direct RPC handler
         /// </summary>
         /// <typeparam name="T">Custom action handler type. This class can expose a default public constructor, or a constructor that accepts an instance of IServiceProvider and other ASP.NET web application services</typeparam>
-        /// <param name="actionName">By default the library uses custom type name as an Action name. You override this and assign some custom name.</param>
+        /// <param name="actionName">By default the library uses type name as an Action name. You override this and assign to a handler some custom name.</param>
         public void AddActionHandler<T>(string actionName = null)
             where T : class
         {

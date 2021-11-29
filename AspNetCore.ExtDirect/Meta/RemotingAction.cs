@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AspNetCore.ExtDirect.Attributes;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -14,7 +15,7 @@ namespace AspNetCore.ExtDirect.Meta
         {
         }
 
-        public RemotingAction(Type type)
+        internal RemotingAction(Type type)
         {
             ActionType = type ?? throw new ArgumentNullException(nameof(type));
 
@@ -25,15 +26,22 @@ namespace AspNetCore.ExtDirect.Meta
                 Name = attr.Name;
             }
 
+            // Collect public methods only
             var publicMethods = ActionType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance);
             foreach (var publicMethod in publicMethods)
             {
-                var remotingMethod = new RemotingMethod(publicMethod);
-                this.Add(remotingMethod);
+                // Exclude methods marked with the ExtDirectIgnoreAttribute
+                var extDirectIgnoreAttribute = publicMethod.GetCustomAttribute<ExtDirectIgnoreAttribute>();
+                if (extDirectIgnoreAttribute == null)
+                {
+                    var remotingMethod = new RemotingMethod(publicMethod);
+                    Add(remotingMethod);
+                }
             }
         }
 
         internal Type ActionType { get; private set; }
+
         /// <summary>
         /// Internal action name
         /// </summary>
@@ -48,6 +56,8 @@ namespace AspNetCore.ExtDirect.Meta
         {
             get
             {
+                if (string.IsNullOrWhiteSpace(name)) return null;
+
                 return this.FirstOrDefault(row => string.Equals(row.Name, name, StringComparison.InvariantCultureIgnoreCase));
             }
         }

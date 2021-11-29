@@ -1,4 +1,5 @@
-﻿using AspNetCore.ExtDirect.Meta;
+﻿using AspNetCore.ExtDirect.Attributes;
+using AspNetCore.ExtDirect.Meta;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,8 @@ namespace AspNetCore.ExtDirect.Demo
 
     public class CalculatorService
     {
-        private ILogger<CalculatorService> _logger;
+        private readonly ILogger<CalculatorService> _logger;
+
         public CalculatorService(ILogger<CalculatorService> logger)
         {
             this._logger = logger;
@@ -55,11 +57,13 @@ namespace AspNetCore.ExtDirect.Demo
 
         public int Add(int a, int b)
         {
+            _logger.LogInformation("Adding {0} and {1}", a, b);
             return a + b;
         }
 
         public int Subtract(int a, int b)
         {
+            _logger.LogInformation("Subtracting {0} and {1}", a, b);
             return a - b;
         }
     }
@@ -110,6 +114,12 @@ namespace AspNetCore.ExtDirect.Demo
 
         public void DoSomethingTransactional()
         {
+        }
+
+        [ExtDirectIgnore]
+        public string Hidden()
+        {
+            return "This a hidden method that is not exposed to clients";
         }
 
         public async Task<string> Hello(string name)
@@ -222,12 +232,14 @@ namespace AspNetCore.ExtDirect.Demo
 
     public class TestPollingHandler
     {
-        public IEnumerable<PollResponse> GetEvents(Person testPerson)
+        public async Task<IEnumerable<PollResponse>> GetEvents(Person testPerson)
         {
+            var result = new List<PollResponse>();
             for (var i = 0; i < 1000; i++)
             {
-                yield return new PollResponse { Name = "ondata", Data = "i = " + i };
+                result.Add(new PollResponse { Name = "ondata", Data = "i = " + i });
             }
+            return await Task.FromResult(result);
         }
     }
 }

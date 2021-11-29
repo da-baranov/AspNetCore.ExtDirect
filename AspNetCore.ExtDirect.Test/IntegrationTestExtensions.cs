@@ -1,4 +1,5 @@
 ﻿using AspNetCore.ExtDirect.Meta;
+using AspNetCore.ExtDirect.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -57,23 +58,41 @@ namespace AspNetCore.ExtDirect.Test
             }
 
             var responseString = await response.Content.ReadAsStringAsync();
-            var responseList = JsonConvert.DeserializeObject<List<RemotingResponse>>(responseString, Utils.Util.DefaultSerializerSettings);
+            var serializerSettings = Utils.Util.CreateDefaultSerializerSettings();
+            // serializerSettings.Converters.Clear();
+            serializerSettings.Converters.Add(new ExtDirectResponseJsonConverter());
+
+            var responseList = JsonConvert.DeserializeObject<List<RemotingResponseBase>>(responseString, serializerSettings);
             if (responseList.Count == 0)
             {
                 throw new Exception("Response array is empty");
             }
-            var responseItem = responseList[0];
-            if (responseItem.Result == null)
+
+
+            if (responseList[0] is RemotingException responseEx)
             {
-                return default;
+                throw new Exception(responseEx.Message);
             }
-            if (responseItem.Result is JToken jtoken)
+            else if (responseList[0] is RemotingResponse responseItem)
             {
-                return jtoken.ToObject<T>();
+                if (responseItem.Result is null)
+                {
+                    return default;
+                }
+
+                else if (responseItem.Result is JToken jtoken)
+                {
+                    return jtoken.ToObject<T>();
+                }
+
+                else
+                {
+                    return (T)responseItem.Result;
+                }
             }
             else
             {
-                return (T)responseItem.Result;
+                throw new Exception("Undefined call result");
             }
         }
     }

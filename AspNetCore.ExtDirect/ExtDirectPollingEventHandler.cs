@@ -48,11 +48,12 @@ namespace AspNetCore.ExtDirect
             {
                 // Creates an instance of polling event handler using dependency injection
                 var handlerInstance = ActivatorUtilities.CreateInstance(_serviceProvider, pollingHandlerType);
-                var tmp = pollingApi.HandlerTypes[pollingHandlerType];
 
-                var handlerMethodInfoType = tmp.GetType();
+                var tmp = pollingApi.HandlerTypes[pollingHandlerType]; // Func<> (delegate)
 
-                var handlerMethodInfo = handlerMethodInfoType.GetMethod("Invoke");
+                var handlerMethodInfoType = tmp.GetType(); // typeof(Func<>)
+
+                var handlerMethodInfo = handlerMethodInfoType.GetMethod("Invoke"); // Polling handler method info (e.g. SomePollingHandler.GetEvents)
 
                 var handlerMethodInfoParameters = handlerMethodInfo.GetParameters().ToList();
 
@@ -60,7 +61,9 @@ namespace AspNetCore.ExtDirect
                 {
                     // obj argument is func itself (pointer to the polling event source non-static method)
                     // [0] argument is an instance of polling events source
-                    result.AddRange(handlerMethodInfo.Invoke(tmp, new object[] { handlerInstance }) as IEnumerable<PollResponse>);
+                    var rv = await Utils.Util.InvokeSyncOrAsync(tmp, handlerMethodInfo, new object[] { handlerInstance }) as IEnumerable<PollResponse>;
+                    //result.AddRange(handlerMethodInfo.Invoke(tmp, new object[] { handlerInstance }) as IEnumerable<PollResponse>);
+                    result.AddRange(rv);
                 }
 
                 else if (handlerMethodInfoParameters.Count == 2)
@@ -71,7 +74,10 @@ namespace AspNetCore.ExtDirect
                     // obj argument is func itself (pointer to the polling event source non-static method)
                     // [0] argument is an instance of polling events source
                     // [1] argument is a polling handler method argument
-                    result.AddRange(handlerMethodInfo.Invoke(tmp, new object[] { handlerInstance, args }) as IEnumerable<PollResponse>);
+                    // result.AddRange(handlerMethodInfo.Invoke(tmp, new object[] { handlerInstance, args }) as IEnumerable<PollResponse>);
+                    var rv = await Utils.Util.InvokeSyncOrAsync(tmp, handlerMethodInfo, new object[] { handlerInstance, args });
+                    var rv1 = rv as IEnumerable<PollResponse>;
+                    result.AddRange(rv1);
                 }
                 else
                 {

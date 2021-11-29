@@ -27,6 +27,11 @@ namespace AspNetCore.ExtDirect
         public string RemotingEndpointUrl => Url + "/remoting";
 
         public string PollingEndpointUrl => Url + "/polling";
+
+        /// <summary>
+        /// Set to true to enable exception full stack trace
+        /// </summary>
+        public bool Debug { get; set; } = false;
     }
 
     internal class ExtDirectOptionsValidator : AbstractValidator<ExtDirectOptions>

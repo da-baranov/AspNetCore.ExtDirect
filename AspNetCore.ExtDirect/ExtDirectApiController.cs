@@ -24,16 +24,12 @@ namespace AspNetCore.ExtDirect
         private readonly ExtDirectHandlerRepository _repository;
         private readonly IServiceProvider _serviceProvider;
 
-        public ExtDirectApiController(IServiceProvider serviceProvider,
-                                      ExtDirectHandlerRepository repository,
-                                      ExtDirectOptions options)
+        public ExtDirectApiController(IServiceProvider serviceProvider)
         {
-            _serviceProvider = serviceProvider
-                ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _repository = repository
-                ?? throw new ArgumentNullException(nameof(repository));
-            _options = options
-                ?? throw new ArgumentNullException(nameof(options));
+            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+
+            _options = serviceProvider.GetRequiredService<ExtDirectOptions>();
+            _repository = serviceProvider.GetRequiredService<ExtDirectHandlerRepository>();
         }
 
         /// <summary>

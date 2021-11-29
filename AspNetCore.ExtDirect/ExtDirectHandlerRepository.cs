@@ -1,4 +1,5 @@
-﻿using AspNetCore.ExtDirect.Meta;
+﻿using AspNetCore.ExtDirect.Attributes;
+using AspNetCore.ExtDirect.Meta;
 using AspNetCore.ExtDirect.Utils;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,7 @@ namespace AspNetCore.ExtDirect
     /// <summary>
     /// For internal use. This class is used as a singleton.
     /// </summary>
-    public sealed class ExtDirectHandlerRepository
+    internal sealed class ExtDirectHandlerRepository
     {
         private readonly IStringLocalizer _localizer;
         private readonly IStringLocalizerFactory _localizerFactory;
@@ -94,7 +95,7 @@ namespace AspNetCore.ExtDirect
 
             if (!RemotingApis.TryGetValue(providerName, out RemotingApi remotingApi))
             {
-                throw new Exception($"Cannot find ExtDirect provider \"{providerName}\" handler.");
+                throw new Exception($"Cannot find ExtDirect provider API handler by name provided (\"{providerName}\")");
             }
 
             if (!remotingApi.Actions.TryGetValue(actionName, out RemotingAction remotingAction))
@@ -106,9 +107,14 @@ namespace AspNetCore.ExtDirect
             var actionMethod = remotingAction[method];
             if (actionMethod == null)
             {
-                throw new Exception($"Cannot find method \"{method}\" on ExtDirect provider \"{providerName}\" and action \"{actionName}\" handler.");
+                throw new InvalidOperationException(_localizer[nameof(Properties.Resources.ERR_NO_SUCH_METHOD), method]);
             }
+
             methodInfo = actionMethod.MethodInfo;
+            if (methodInfo.GetCustomAttribute<ExtDirectIgnoreAttribute>(false) != null)
+            {
+                throw new InvalidOperationException(_localizer[nameof(Properties.Resources.ERR_NO_SUCH_METHOD), method]);
+            }   
         }
 
         internal IEnumerable<RemotingApi> ToRemotingApi()

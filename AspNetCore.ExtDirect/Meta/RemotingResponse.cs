@@ -1,6 +1,6 @@
 ﻿namespace AspNetCore.ExtDirect.Meta
 {
-    public class RemotingResponse
+    public class RemotingResponse : RemotingResponseBase
     {
         public RemotingResponse()
         {
@@ -18,22 +18,7 @@
         /// <summary>
         /// MUST be a string "rpc"
         /// </summary>
-        public string Type { get; } = "rpc";
-
-        /// <summary>
-        /// The transaction id for this Response. MUST be the same as in the original Request.
-        /// </summary>
-        public int Tid { get; set; }
-
-        /// <summary>
-        /// The Action to which the invoked Method belongs to. MUST be the same as in the original Request.
-        /// </summary>
-        public string Action { get; set; }
-
-        /// <summary>
-        ///  The name of the invoked Remoting Method. MUST be the same as in the original Request.
-        /// </summary>
-        public string Method { get; set; }
+        public override string Type { get; } = "rpc";
 
         /// <summary>
         /// The data returned by the Method. MUST be present in the Response object, but MAY be null for Methods that do not return any data.

@@ -2,7 +2,7 @@
 
 namespace AspNetCore.ExtDirect
 {
-    public class ExtDirectTransactionEventArgs : EventArgs
+    public sealed class ExtDirectTransactionEventArgs : EventArgs
     {
         public ExtDirectTransactionEventArgs() { }
 

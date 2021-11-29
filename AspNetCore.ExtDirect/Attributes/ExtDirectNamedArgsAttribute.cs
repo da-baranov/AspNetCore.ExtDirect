@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace AspNetCore.ExtDirect
+namespace AspNetCore.ExtDirect.Attributes
 {
     /// <summary>
     /// Tells a caller that this Method accepts named arguments

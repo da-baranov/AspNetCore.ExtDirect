@@ -142,6 +142,15 @@ namespace AspNetCore.ExtDirect.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Method not found (&quot;{0}&quot;)..
+        /// </summary>
+        internal static string ERR_NO_SUCH_METHOD {
+            get {
+                return ResourceManager.GetString("ERR_NO_SUCH_METHOD", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to AspNetCore.ExtDirect configuration error. Some configuration methods (IServiceProvider.AddExtDirect and other) should be called to configure the library..
         /// </summary>
         internal static string ERR_NOT_CONFIGURED {

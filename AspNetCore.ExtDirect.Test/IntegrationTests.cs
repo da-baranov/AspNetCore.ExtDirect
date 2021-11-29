@@ -103,5 +103,23 @@ namespace AspNetCore.ExtDirect.Test
             var events = await _client.CallPolling();
             Assert.IsTrue(events.Count != 0);
         }
+
+        [Test]
+        public async Task Test_HiddenMethod()
+        {
+            try
+            {
+                var str = await _client.CallOrdered<string>("Demo", "hidden");
+                Assert.Fail(); // Should not reach that
+            }
+            catch(AssertionException)
+            {
+                Assert.Fail();
+            }
+            catch (Exception ex)
+            {
+                Assert.Pass();
+            }
+        }
     }
 }

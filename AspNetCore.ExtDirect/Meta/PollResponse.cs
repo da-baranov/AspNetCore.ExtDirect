@@ -1,11 +1,11 @@
 ﻿namespace AspNetCore.ExtDirect.Meta
 {
-    public class PollResponse
+    public class PollResponse : ResponseBase
     {
         /// <summary>
         /// MUST be a string "event"
         /// </summary>
-        public string Type { get; } = "event";
+        public override string Type { get; } = "event";
 
         /// <summary>
         /// Event name, MUST be a string.

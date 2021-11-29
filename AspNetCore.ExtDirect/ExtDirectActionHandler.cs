@@ -1,4 +1,5 @@
-﻿using AspNetCore.ExtDirect.Meta;
+﻿using AspNetCore.ExtDirect.Attributes;
+using AspNetCore.ExtDirect.Meta;
 using AspNetCore.ExtDirect.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
@@ -23,7 +24,9 @@ namespace AspNetCore.ExtDirect
         private readonly ExtDirectHandlerRepository _repository;
         private readonly IServiceProvider _serviceProvider;
         private readonly ExtDirectTransactionService _transactionService;
-        private List<object> _result;
+        private readonly ExtDirectOptions _options;
+        private List<RemotingResponseBase> _result;
+
 
         /// <summary>
         /// Constructs an instance of ExtDirectActionHandler
@@ -36,7 +39,7 @@ namespace AspNetCore.ExtDirect
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _providerName = providerName;
             _batch = batch ?? throw new ArgumentNullException(nameof(batch));
-
+            _options = serviceProvider.GetRequiredService<ExtDirectOptions>();
             _repository = serviceProvider.GetService<ExtDirectHandlerRepository>();
             _transactionService = serviceProvider.GetService<ExtDirectTransactionService>();
 
@@ -48,7 +51,7 @@ namespace AspNetCore.ExtDirect
         /// Executes the Ext Direct batch passed as constructor argument
         /// </summary>
         /// <returns></returns>
-        internal async Task<List<object>> ExecuteAsync()
+        internal async Task<List<RemotingResponseBase>> ExecuteAsync()
         {
             await ValidateBatchAsync();
             await ProcessBatchAsync(_providerName);
@@ -64,30 +67,6 @@ namespace AspNetCore.ExtDirect
         /// <returns></returns>
         private async Task<object> InvokeAsync(RemotingRequest request, object obj, MethodInfo methodInfo, object arguments)
         {
-            async Task<object> _InvokeAsync(params object[] args)
-            {
-                var task = (Task)methodInfo.Invoke(obj, args);
-                await task.ConfigureAwait(false);
-                var resultProperty = task.GetType().GetProperty("Result");
-
-                if (resultProperty == null) return null;
-
-                var rv = resultProperty.GetValue(task);
-                return rv;
-            }
-
-            async Task<object> _InvokeSync(params object[] args)
-            {
-                var result = methodInfo.Invoke(obj, args);
-                return await Task.FromResult(result);
-            }
-
-            // ***
-
-            var isAsync =
-                methodInfo.GetCustomAttribute<AsyncStateMachineAttribute>(false) != null ||
-                methodInfo.Name.EndsWith("async", StringComparison.InvariantCultureIgnoreCase);
-
             var parameters = methodInfo.GetParameters();
 
             // Ordered arguments
@@ -104,9 +83,7 @@ namespace AspNetCore.ExtDirect
                         args.Add(value);
                     }
                 }
-                return isAsync ?
-                    await _InvokeAsync(args.ToArray()) :
-                    await _InvokeSync(args.ToArray());
+                return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
             }
 
             // Named arguments
@@ -126,9 +103,7 @@ namespace AspNetCore.ExtDirect
                         args.Add(null);
                     }
                 }
-                return isAsync ?
-                    await _InvokeAsync(args.ToArray()) :
-                    await _InvokeSync(args.ToArray());
+                return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
             }
 
             // Scalar?
@@ -152,15 +127,11 @@ namespace AspNetCore.ExtDirect
                         }
                     }
                 }
-                return isAsync ?
-                    await _InvokeAsync(args.ToArray()) :
-                    await _InvokeSync(args.ToArray());
+                return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
             }
             else if (request.Data == null)
             {
-                return isAsync ?
-                    await _InvokeAsync(Array.Empty<object>()) :
-                    await _InvokeSync(Array.Empty<object>());
+                return await Util.InvokeSyncOrAsync(obj, methodInfo);
             }
             else
             {
@@ -182,7 +153,7 @@ namespace AspNetCore.ExtDirect
 
             try
             {
-                _result = new List<object>();
+                _result = new List<RemotingResponseBase>();
                 foreach (var batchItem in _batch)
                 {
                     var rv = await ProcessSingleBatchItemAsync(providerName, batchItem);
@@ -202,7 +173,7 @@ namespace AspNetCore.ExtDirect
         /// </summary>
         /// <param name="request"></param>
         /// <returns>RemotingResponse or RemotingException</returns>
-        private async Task<object> ProcessSingleBatchItemAsync(string providerName, RemotingRequest request)
+        private async Task<RemotingResponseBase> ProcessSingleBatchItemAsync(string providerName, RemotingRequest request)
         {
             try
             {
@@ -223,17 +194,20 @@ namespace AspNetCore.ExtDirect
                 if (tex.InnerException != null)
                 {
                     var ex = new RemotingException(request, tex.InnerException);
+                    if (_options.Debug == false) ex.Where = null;
                     return await Task.FromResult(ex);
                 }
                 else
                 {
                     var ex = new RemotingException(request, tex);
+                    if (_options.Debug == false) ex.Where = null;
                     return await Task.FromResult(ex);
                 }
             }
             catch (Exception ex)
             {
                 var exception = new RemotingException(ex, request.Action, request.Method, request.Tid);
+                if (_options.Debug == false) exception.Where = null;
                 return await Task.FromResult(exception);
             }
         }
