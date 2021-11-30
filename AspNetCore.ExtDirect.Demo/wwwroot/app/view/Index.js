@@ -8,7 +8,8 @@
         "ExtDirectDemo.view.NamedArgsExample",
         "ExtDirectDemo.view.MakePersonNameExample",
         "ExtDirectDemo.view.Chat",
-        "ExtDirectDemo.view.RandomPollingDataExample"
+        "ExtDirectDemo.view.RandomPollingDataExample",
+        "ExtDirectDemo.view.RemotingStoreExample"
     ],
     extend: "Ext.tab.Panel",
     tabPosition: "left",
@@ -40,6 +41,9 @@
         },
         {
             xtype: "Chat"
+        },
+        {
+            xtype: "RemotingStoreExample"
         }
     ]
 });

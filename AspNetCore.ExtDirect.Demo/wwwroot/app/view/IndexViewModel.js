@@ -1,14 +1,15 @@
 ﻿Ext.define("ExtDirectDemo.view.IndexViewModel", {
     extend: "Ext.app.ViewModel",
     alias: "viewmodel.IndexViewModel",
+    requires: "ExtDirectDemo.model.Person",
 
     data: {
         name: "John Doe",
 
         calculator: {
-            operand1: 0,
-            operand2: 0,
-            sum: 0
+            operand1: 1,
+            operand2: 99,
+            sum: undefined
         },
 
         orderedArguments: {
@@ -33,7 +34,11 @@
 
         someRandomData: "2 * 2 = 4",
 
-        chatMessage: null
+        chatMessage: null,
+
+        personsView: {
+            filter: ""
+        }
     },
 
     stores: {
@@ -52,6 +57,22 @@
                     name: "message"
                 }
             ]
+        },
+
+        persons: {
+            autoLoad: true,
+            autoSync: true,
+            model: "ExtDirectDemo.model.Person",
+            proxy: {
+                type: "direct",
+                reader: {
+                    type: "json"
+                },
+                api: {
+                    read: "Test.getPersons",
+                    create: "Test.createPersons"
+                }
+            }
         }
     }
 });

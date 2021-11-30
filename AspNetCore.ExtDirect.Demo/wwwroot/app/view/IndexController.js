@@ -92,7 +92,7 @@
         "#cmdHello": {
             click: function () {
                 const name = this.getViewModel().get("name");
-                Demo.hello(name, function (response, e) {
+                Test.hello(name, function (response, e) {
                     if (e.type === "exception") {
                         Ext.Msg.show(
                             {
@@ -113,7 +113,7 @@
             click: function () {
                 const args = this.getViewModel().get("orderedArguments");
 
-                Demo.orderedArguments(args.a, args.b, args.c, function (response, e) {
+                Test.orderedArguments(args.a, args.b, args.c, function (response, e) {
                     if (e.type === "exception") {
                         Ext.Msg.show(
                             {
@@ -138,7 +138,7 @@
                     b: args.b,
                     c: args.c
                 };
-                Demo.namedArguments(data, function (response, e) {
+                Test.namedArguments(data, function (response, e) {
                     if (e.type === "exception") {
                         Ext.Msg.show(
                             {
@@ -163,7 +163,7 @@
                     firstName: args.firstName,
                     lastName: args.lastName
                 };
-                Demo.makeName(data, function (response, e) {
+                Test.makeName(data, function (response, e) {
                     if (e.type === "exception") {
                         Ext.Msg.show(
                             {
@@ -198,6 +198,36 @@
                         viewModel.set("chatMessage", "");
                     }
                 });
+            }
+        },
+
+        "#cmdPersonsAdd": {
+            click: function () {
+                const store = this.getStore("persons");
+                const window = Ext.create("ExtDirectDemo.view.PersonForm");
+                window.on("close", function (sender) {
+                    if (sender.modalResult === "ok") {
+                        const person = sender.getViewModel().get("person");
+                        store.add(person);
+                    }
+                });
+                window.show();
+            }
+        },
+
+        "#cmdPersonsRefresh": {
+            click: function () {
+                const store = this.getStore("persons");
+                store.reload();
+            }
+        },
+
+        "#txtPersonSearch": {
+            change: function (sender) {
+                const store = this.getStore("persons");
+                const filter = sender.getValue();
+                store.getProxy().setExtraParam("filter", filter);
+                store.reload();
             }
         }
     }

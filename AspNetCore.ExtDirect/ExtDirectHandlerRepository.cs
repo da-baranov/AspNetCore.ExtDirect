@@ -88,7 +88,7 @@ namespace AspNetCore.ExtDirect
             }
         }
 
-        internal void FindExtDirectActionAndMethod(string providerName, string actionName, string method, out Type type, out MethodInfo methodInfo)
+        internal void FindExtDirectActionAndMethod(string providerName, string actionName, string method, out RemotingAction remotingAction, out RemotingMethod remotingMethod, out Type type, out MethodInfo methodInfo)
         {
             type = null;
             methodInfo = null;
@@ -98,10 +98,11 @@ namespace AspNetCore.ExtDirect
                 throw new Exception($"Cannot find ExtDirect provider API handler by name provided (\"{providerName}\")");
             }
 
-            if (!remotingApi.Actions.TryGetValue(actionName, out RemotingAction remotingAction))
+            if (!remotingApi.Actions.TryGetValue(actionName, out RemotingAction ra))
             {
                 throw new Exception($"Cannot find action \"{actionName}\" within provider \"{providerName}\"");
             }
+            remotingAction = ra;
             type = remotingAction.ActionType;
 
             var actionMethod = remotingAction[method];
@@ -109,6 +110,7 @@ namespace AspNetCore.ExtDirect
             {
                 throw new InvalidOperationException(_localizer[nameof(Properties.Resources.ERR_NO_SUCH_METHOD), method]);
             }
+            remotingMethod = actionMethod;
 
             methodInfo = actionMethod.MethodInfo;
             if (methodInfo.GetCustomAttribute<ExtDirectIgnoreAttribute>(false) != null)

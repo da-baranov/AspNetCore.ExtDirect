@@ -3,8 +3,10 @@ using AspNetCore.ExtDirect.Meta;
 using AspNetCore.ExtDirect.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -25,6 +27,7 @@ namespace AspNetCore.ExtDirect
         private readonly IServiceProvider _serviceProvider;
         private readonly ExtDirectBatchService _batchService;
         private readonly ExtDirectOptions _options;
+        private readonly ILogger<ExtDirectRemotingHandler> _logger;
         private List<RemotingResponseBase> _result;
 
 
@@ -41,6 +44,8 @@ namespace AspNetCore.ExtDirect
             _batch = batch ?? throw new ArgumentNullException(nameof(batch));
             _options = serviceProvider.GetRequiredService<ExtDirectOptions>();
             _repository = serviceProvider.GetService<ExtDirectHandlerRepository>();
+            _logger = serviceProvider.GetService<ILogger<ExtDirectRemotingHandler>>();
+
             _batchService = (ExtDirectBatchService)serviceProvider.GetService<IExtDirectBatchService>();
 
             _localizerFactory = serviceProvider.GetService<IStringLocalizerFactory>();
@@ -58,87 +63,111 @@ namespace AspNetCore.ExtDirect
             return _result;
         }
 
-        /// <summary>
-        /// Invokes an object's method
-        /// </summary>
-        /// <param name="obj">An object</param>
-        /// <param name="methodInfo">Object method descriptor</param>
-        /// <param name="arguments">Arguments in JSON format. This can be either a scalar, a javascript array, or a javascript object</param>
-        /// <returns></returns>
-        private async Task<object> InvokeAsync(RemotingRequest request, object obj, MethodInfo methodInfo, object arguments)
+        private async Task<object> InvokeAsync(RemotingRequest request,       // Batch item
+                                               RemotingAction remotingAction, // Action descriptor
+                                               RemotingMethod remotingMethod, // Method descriptor
+                                               object obj,                    // Handler
+                                               MethodInfo methodInfo,         // Handler method to be invoked
+                                               object arguments)              // Handler method arguments (as JToken)
         {
-            var parameters = methodInfo.GetParameters();
-
-            // Ordered arguments
-            if (arguments is JArray array)
+            try
             {
-                var args = new List<object>();
-                for (var i = 0; i < parameters.Length; i++)
+                var parameters = methodInfo.GetParameters();
+
+                // Ordered arguments
+                if (arguments is JArray array)
                 {
-                    if (i < array.Count)
+                    var args = new List<object>();
+
+                    // There is no way to distinguish between an array that contains named arguments and array of objects passed by ExtJS store
+                    // If methodInfo has exactly 1 parameter of type IEnumerable, the array must be handled as Store request
+                    if (array.Count > 0
+                        && array[0] is JObject
+                        && parameters.Length == 1
+                        && typeof(IEnumerable).IsAssignableFrom(parameters[0].ParameterType))
+                    {
+                        var value = array.ToObject(parameters[0].ParameterType);
+                        args.Add(value);
+                    }
+                    else
+                    { 
+                        for (var i = 0; i < parameters.Length; i++)
+                        {
+                            if (i < array.Count)
+                            {
+                                var parameter = parameters[i];
+                                var parameterType = parameter.ParameterType;
+                                var value = array[i].ToObject(parameterType);
+                                args.Add(value);
+                            }
+                            else
+                            {
+                                args.Add(null);
+                            }
+                        }
+                    }
+                    return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
+                }
+
+                // Named arguments
+                else if (arguments is JObject jobject)
+                {
+                    var args = new List<object>();
+                    for (var i = 0; i < parameters.Length; i++)
                     {
                         var parameter = parameters[i];
                         var parameterType = parameter.ParameterType;
-                        var value = array[i].ToObject(parameterType);
-                        args.Add(value);
-                    }
-                }
-                return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
-            }
-
-            // Named arguments
-            else if (arguments is JObject jobject)
-            {
-                var args = new List<object>();
-                for (var i = 0; i < parameters.Length; i++)
-                {
-                    var parameter = parameters[i];
-                    var parameterType = parameter.ParameterType;
-                    if (jobject.TryGetValue(parameter.Name, StringComparison.InvariantCultureIgnoreCase, out JToken jvalue))
-                    {
-                        args.Add(jvalue.ToObject(parameterType));
-                    }
-                    else
-                    {
-                        args.Add(null);
-                    }
-                }
-                return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
-            }
-
-            // Scalar?
-            else if (arguments is JToken jtoken)
-            {
-                var args = new List<object>();
-                if (parameters.Length > 0)
-                {
-                    for (var i = 0; i < parameters.Length; i++)
-                    {
-                        if (i == 0)
+                        if (jobject.TryGetValue(parameter.Name, StringComparison.InvariantCultureIgnoreCase, out JToken jvalue))
                         {
-                            var parameter = parameters[i];
-                            var parameterType = parameter.ParameterType;
-                            var value = jtoken.ToObject(parameterType);
-                            args.Add(value);
+                            args.Add(jvalue.ToObject(parameterType));
                         }
                         else
                         {
                             args.Add(null);
                         }
                     }
+                    return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
                 }
-                return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
+
+                // Scalar?
+                else if (arguments is JToken jtoken)
+                {
+                    var args = new List<object>();
+                    if (parameters.Length > 0)
+                    {
+                        for (var i = 0; i < parameters.Length; i++)
+                        {
+                            if (i == 0)
+                            {
+                                var parameter = parameters[i];
+                                var parameterType = parameter.ParameterType;
+                                var value = jtoken.ToObject(parameterType);
+                                args.Add(value);
+                            }
+                            else
+                            {
+                                args.Add(null);
+                            }
+                        }
+                    }
+                    return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
+                }
+                else if (request.Data == null)
+                {
+                    return await Util.InvokeSyncOrAsync(obj, methodInfo);
+                }
+                else
+                {
+                    throw new NotSupportedException(_localizer[nameof(Properties.Resources.ERR_INVALID_JSON),
+                            request.Action,
+                            request.Method,
+                            request.Data?.GetType()]);
+                }
             }
-            else if (request.Data == null)
+            catch (Exception ex)
             {
-                return await Util.InvokeSyncOrAsync(obj, methodInfo);
-            }
-            else
-            {
-                throw new NotSupportedException(_localizer[nameof(Properties.Resources.ERR_INVALID_JSON),
-                        request.Action,
-                        request.Method,
-                        request.Data?.GetType()]);
+                _logger.LogError(ex, "Failed to invoke remoting handler method (action: {0}, method: {1})", remotingAction.Name, remotingMethod.Name);
+                throw;
             }
         }
 
@@ -178,13 +207,13 @@ namespace AspNetCore.ExtDirect
             try
             {
                 // Looking for an Action handler in repository
-                _repository.FindExtDirectActionAndMethod(providerName, request.Action, request.Method, out Type type, out MethodInfo methodInfo);
+                _repository.FindExtDirectActionAndMethod(providerName, request.Action, request.Method, out RemotingAction remotingAction, out RemotingMethod remotingMethod, out Type type, out MethodInfo methodInfo);
 
                 // Create an instance of handler service using DI
                 var instance = ActivatorUtilities.CreateInstance(_serviceProvider, type);
 
                 // Invoke handler method
-                var data = await InvokeAsync(request, instance, methodInfo, request.Data);
+                var data = await InvokeAsync(request, remotingAction, remotingMethod, instance, methodInfo, request.Data);
 
                 var response = new RemotingResponse(request, data);
                 return await Task.FromResult(response);

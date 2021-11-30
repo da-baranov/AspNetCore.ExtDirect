@@ -17,10 +17,23 @@ namespace AspNetCore.ExtDirect
         /// </summary>
         public IReadOnlyDictionary<Type, object> HandlerTypes => _handlerTypes;
 
+        private string _id;
+
         /// <summary>
         /// An identifier of the API is being registered. By default this is a random UUID 
         /// </summary>
-        public string Id { get; set; } = Utils.Util.Uuid();
+        public string Id
+        {
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(_id)) return _id;
+                return Name;
+            }
+            set
+            {
+                _id = value;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the name of the current API. This name should be unique within a web application.

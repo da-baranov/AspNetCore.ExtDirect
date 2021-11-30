@@ -4,7 +4,6 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -36,7 +35,7 @@ namespace AspNetCore.ExtDirect.Test
         public async Task Test_ComplexArguments()
         {
             var personName = new { Prefix = "Mr.", FirstName = "John", LastName = "Doe" };
-            var rv = await _client.CallOrdered<string>("Demo", "makeName", personName);
+            var rv = await _client.CallOrdered<string>("Test", "makeName", personName);
             Assert.AreEqual(rv, $"{personName.Prefix} {personName.FirstName} {personName.LastName}".Trim());
         }
 
@@ -92,8 +91,8 @@ namespace AspNetCore.ExtDirect.Test
         [Test]
         public async Task Test_NamedArguments()
         {
-            var i = new DemoNamedArguments { A = "111", B = Math.PI, C = DateTime.Now.Year };
-            var o = await _client.CallNamed<DemoNamedArguments>("Demo", "namedArguments", i);
+            var i = new NamedArguments { A = "111", B = Math.PI, C = DateTime.Now.Year };
+            var o = await _client.CallNamed<NamedArguments>("Test", "namedArguments", i);
             Assert.IsTrue(i.A == o.A &&
                           i.C == o.C);
         }
@@ -104,7 +103,7 @@ namespace AspNetCore.ExtDirect.Test
             var a = Guid.NewGuid().ToString();
             var b = DateTime.Now.Year;
             var c = DateTime.Now;
-            var o = await _client.CallOrdered<DemoOrderedArguments>("Demo", "orderedArguments", a, b, c);
+            var o = await _client.CallOrdered<OrderedArguments>("Test", "orderedArguments", a, b, c);
             Assert.IsTrue(o.A == a && o.C == c);
         }
 
@@ -120,7 +119,7 @@ namespace AspNetCore.ExtDirect.Test
         {
             try
             {
-                var str = await _client.CallOrdered<string>("Demo", "hidden");
+                var str = await _client.CallOrdered<string>("Test", "hidden");
                 Assert.Fail(); // Should not reach that
             }
             catch(AssertionException)

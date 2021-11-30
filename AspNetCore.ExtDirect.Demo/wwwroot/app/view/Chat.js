@@ -7,16 +7,16 @@
     },
     items: [
         {
-            xtype: "container",
-            region: "north",
-            layout: {
-                type: "hbox",
-                align: "end"
-            },
-            items: [
+            xtype: "gridpanel",
+            region: "center",
+            title: "Talk to yourself",
+            tbar: [
+                {
+                    xtype: "label",
+                    text: "Say something:"
+                },
                 {
                     xtype: "textfield",
-                    fieldLabel: "Say something",
                     bind: {
                         value: "{chatMessage}"
                     }
@@ -26,11 +26,7 @@
                     text: "Send",
                     itemId: "cmdSendMessage"
                 }
-            ]
-        },
-        {
-            xtype: "gridpanel",
-            region: "center",
+            ],
             columns: [
                 {
                     text: "Date/time",

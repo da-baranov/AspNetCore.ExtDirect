@@ -1,5 +1,6 @@
 ﻿using AspNetCore.ExtDirect.Attributes;
 using AspNetCore.ExtDirect.Meta;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -13,11 +14,11 @@ namespace AspNetCore.ExtDirect.Demo
     /// <summary>
     /// This class handles both Remoting and Polling requests
     /// </summary>
-    public class DemoChatHandler
+    public class RemotingChatService
     {
-        private DemoDbContext _dbContext;
+        private readonly DemoDbContext _dbContext;
 
-        public DemoChatHandler(DemoDbContext dbContext)
+        public RemotingChatService(DemoDbContext dbContext)
         {
             _dbContext = dbContext;
             _dbContext.Database.EnsureCreated();
@@ -28,7 +29,9 @@ namespace AspNetCore.ExtDirect.Demo
         /// </summary>
         public IEnumerable<PollResponse> GetEvents()
         {
-            var messages = _dbContext.Messages.Where(row => row.Read == false);
+            var messages = _dbContext
+                .Messages
+                .Where(row => row.Read == false);
             foreach (var message in messages)
             {
                 message.Read = true;
@@ -42,6 +45,10 @@ namespace AspNetCore.ExtDirect.Demo
         /// </summary>
         public void SendMessage(string message)
         {
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                throw new Exception("Say something please");
+            }
             var newMessage = new ChatMessage
             {
                 Date = DateTime.Now,
@@ -53,11 +60,11 @@ namespace AspNetCore.ExtDirect.Demo
         }
     }
 
-    public class CalculatorService
+    public class RemotingCalculatorService
     {
-        private readonly ILogger<CalculatorService> _logger;
+        private readonly ILogger<RemotingCalculatorService> _logger;
 
-        public CalculatorService(ILogger<CalculatorService> logger)
+        public RemotingCalculatorService(ILogger<RemotingCalculatorService> logger)
         {
             _logger = logger;
         }
@@ -75,90 +82,21 @@ namespace AspNetCore.ExtDirect.Demo
         }
     }
 
-    [ExtDirectAction("Demo")]
-    public class DemoActionHandler
-    {
-        private readonly IExtDirectBatchService _transactionService;
-        private TransactionScope _transactionScope;
-
-        public DemoActionHandler(IExtDirectBatchService transactionService)
-        {
-            // transaction service can be consumed via standard AspNet.Core DI as follows:
-            _transactionService = transactionService;
-            _transactionService.BatchBegin += (sender, e) =>
-            {
-                _transactionScope = new TransactionScope();
-            };
-            _transactionService.BatchCommit += (sender, e) =>
-            {
-                if (_transactionScope != null)
-                {
-                    _transactionScope.Complete();
-                    _transactionScope.Dispose();
-                    _transactionScope = null;
-                }
-            };
-            _transactionService.BatchException += (sender, e) =>
-            {
-                if (_transactionScope != null)
-                {
-                    _transactionScope.Dispose();
-                    _transactionScope = null;
-                }
-            };
-        }
-
-        public void DoSomethingTransactional()
-        {
-        }
-
-        [ExtDirectIgnore]
-        public string Hidden()
-        {
-            return "This a hidden method that is not exposed to clients";
-        }
-
-        public async Task<string> Hello(string name)
-        {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name), "No name provided");
-            }
-            return await Task.FromResult("Hello, " + name + "!");
-        }
-
-        public string MakeName(Person personName)
-        {
-            return $"{personName.Prefix} {personName.FirstName} {personName.LastName}".Trim();
-        }
-
-        [ExtDirectNamedArgs]
-        public DemoNamedArguments NamedArguments(string a = "Some string from server", double? b = 3.14, int? c = 2021)
-        {
-            return new DemoNamedArguments { A = a, B = b, C = c };
-        }
-
-        public DemoOrderedArguments OrderedArguments(string a, double b, DateTime c)
-        {
-            return new DemoOrderedArguments { A = a, B = b, C = c };
-        }
-    }
-
-    public class DemoNamedArguments
+    public class NamedArguments
     {
         public string A;
         public double? B;
         public int? C;
     }
 
-    public class DemoOrderedArguments
+    public class OrderedArguments
     {
         public string A;
         public double B;
         public DateTime C;
     }
 
-    public class DemoPollingHandler
+    public class PollingService
     {
         public IEnumerable<PollResponse> GetEvents()
         {
@@ -190,16 +128,55 @@ namespace AspNetCore.ExtDirect.Demo
         public string StreetAddressLine { get; set; }
     }
 
-    public class TestHandler
+    public class StoreRequest
     {
-        private readonly IExtDirectBatchService _transactionService;
+        public int? Page { get; set; }
 
-        public TestHandler(IExtDirectBatchService transactionService)
+        public int? Start { get; set; }
+
+        public int? Limit { get; set; }
+
+        public string Filter { get; set; }
+    }
+
+    public class RemotingTestHandler
+    {
+        public RemotingTestHandler(DemoDbContext dbContext)
         {
-            _transactionService = transactionService ?? throw new ArgumentNullException(nameof(transactionService));
-            _transactionService.BatchException += (sender, e) =>
+            _dbContext = dbContext;
+        }
+
+        private readonly DemoDbContext _dbContext;
+
+        [ExtDirectIgnore]
+        public string Hidden()
+        {
+            return "This a hidden method that is not exposed to clients";
+        }
+
+        public async Task<string> Hello(string name)
+        {
+            if (string.IsNullOrEmpty(name))
             {
-            };
+                throw new ArgumentNullException(nameof(name), "No name provided");
+            }
+            return await Task.FromResult("Hello, " + name + "!");
+        }
+
+        public string MakeName(Person personName)
+        {
+            return $"{personName.Prefix} {personName.FirstName} {personName.LastName}".Trim();
+        }
+
+        [ExtDirectNamedArgs]
+        public NamedArguments NamedArguments(string a = "Some string from server", double? b = 3.14, int? c = 2021)
+        {
+            return new NamedArguments { A = a, B = b, C = c };
+        }
+
+        public OrderedArguments OrderedArguments(string a, double b, DateTime c)
+        {
+            return new OrderedArguments { A = a, B = b, C = c };
         }
 
         public List<TestListItem> EchoList(List<TestListItem> value)
@@ -216,6 +193,30 @@ namespace AspNetCore.ExtDirect.Demo
         {
             var person = new Person { FirstName = "John", LastName = "Doe" };
             return await Task.FromResult(person);
+        }
+
+        public async Task<List<Person>> GetPersons(StoreRequest request)
+        {
+            var q = _dbContext.Persons.AsQueryable();
+            
+            if (request != null && !string.IsNullOrWhiteSpace(request.Filter))
+            {
+                q = q.Where(row => row.LastName.Contains(request.Filter) ||
+                                   row.FirstName.Contains(request.Filter) ||
+                                   row.GivenName.Contains(request.Filter));
+            }
+            return await q.OrderBy(row => row.LastName).ThenBy(row => row.FirstName).ToListAsync();
+        }
+
+        public async Task<List<int>> CreatePersons(List<Person> persons)
+        {
+            persons.ForEach((p) =>
+            {
+                p.Id = 0;
+            });
+            _dbContext.Persons.AddRange(persons);
+            await _dbContext.SaveChangesAsync();
+            return persons.Select(row => row.Id).ToList();
         }
     }
 

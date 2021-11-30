@@ -25,45 +25,51 @@ namespace AspNetCore.ExtDirect.Demo
                 // TODO: modify options here
             });
 
-            // Registering ExtDirect remoting handlers. Navigate /ExtDirect.js to 
+            //
+            // Registering ExtDirect remoting handlers
+            //
             services.AddExtDirectRemotingApi(options =>
             {
-                options.AddHandler<DemoActionHandler>("Demo");
-                options.AddHandler<DemoChatHandler>("Chat");
-                options.AddHandler<TestHandler>("Test");
+                options.AddHandler<RemotingChatService>("Chat");
+                options.AddHandler<RemotingTestHandler>("Test");
             });
 
             services.AddExtDirectRemotingApi(options =>
             {
-                options.Name = options.Id = "CALCULATOR_API_1";
+                options.Name = "CALCULATOR_API_1";
                 options.Namespace = "Calculator1";
-                options.AddHandler<CalculatorService>("Calculator");
+                options.AddHandler<RemotingCalculatorService>("Calculator");
             });
 
             services.AddExtDirectRemotingApi(options =>
             {
-                options.Name = options.Id = "CALCULATOR_API_2";
+                options.Name = "CALCULATOR_API_2";
                 options.Namespace = "Calculator2";
-                options.AddHandler<CalculatorService>("Calculator");
+                options.AddHandler<RemotingCalculatorService>("Calculator");
             });
 
+            //
+            // Registering polling handlers
+            // 
             services.AddExtDirectPollingApi(options =>
             {
-                options.Name = options.Id = "POLLING_DATA_API";
-                options.AddHandler<DemoPollingHandler>((sender) => sender.GetEvents());
+                options.Name = "POLLING_DATA_API";
+                options.AddHandler<PollingService>((sender) => sender.GetEvents());
             });
             services.AddExtDirectPollingApi(options =>
             {
-                options.Name = options.Id = "POLLING_CHAT_API";
-                options.AddHandler<DemoChatHandler>((sender) => sender.GetEvents());
+                options.Name = "POLLING_CHAT_API";
+                options.AddHandler<RemotingChatService>((sender) => sender.GetEvents());
             });
             services.AddExtDirectPollingApi(options =>
             {
-                options.Name = options.Id = "POLLING_TEST_API";
+                options.Name = "POLLING_TEST_API";
                 options.AddHandler<TestPollingHandler, Person>((sender, person) => sender.GetEvents(person));
             });
 
-
+            //
+            // Test DbContext
+            //
             services.AddDbContext<DemoDbContext>(options =>
             {
                 options.UseSqlite("Data Source=Data/Demo.db");

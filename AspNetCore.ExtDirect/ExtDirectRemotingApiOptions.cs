@@ -24,7 +24,7 @@ namespace AspNetCore.ExtDirect
         private string _id;
 
         /// <summary>
-        /// The unique id of the provider. Default value is random UUID string.
+        /// The unique id of the provider
         /// </summary>
         public string Id 
         { 
