@@ -23,7 +23,7 @@ namespace AspNetCore.ExtDirect
         private readonly string _providerName;
         private readonly ExtDirectHandlerRepository _repository;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ExtDirectTransactionService _transactionService;
+        private readonly ExtDirectBatchService _batchService;
         private readonly ExtDirectOptions _options;
         private List<RemotingResponseBase> _result;
 
@@ -31,7 +31,7 @@ namespace AspNetCore.ExtDirect
         /// <summary>
         /// Constructs an instance of ExtDirectActionHandler
         /// </summary>
-        /// <param name="serviceProvider">ASP.NET Core application service provider</param>
+        /// <param name="serviceProvider">ASP.NET Core web application service provider</param>
         /// <param name="providerName">Name of Ext Direct remoting provider</param>
         /// <param name="batch">Batch to be executed</param>
         internal ExtDirectRemotingHandler(IServiceProvider serviceProvider, string providerName, RemotingRequestBatch batch)
@@ -41,7 +41,7 @@ namespace AspNetCore.ExtDirect
             _batch = batch ?? throw new ArgumentNullException(nameof(batch));
             _options = serviceProvider.GetRequiredService<ExtDirectOptions>();
             _repository = serviceProvider.GetService<ExtDirectHandlerRepository>();
-            _transactionService = serviceProvider.GetService<ExtDirectTransactionService>();
+            _batchService = (ExtDirectBatchService)serviceProvider.GetService<IExtDirectBatchService>();
 
             _localizerFactory = serviceProvider.GetService<IStringLocalizerFactory>();
             _localizer = _localizerFactory.Create(typeof(Properties.Resources));
@@ -149,7 +149,7 @@ namespace AspNetCore.ExtDirect
         private async Task ProcessBatchAsync(string providerName)
         {
             var transactionId = Util.Uuid();
-            _transactionService.FireTransactionBegin(transactionId);
+            _batchService.FireBatchBegin(transactionId);
 
             try
             {
@@ -159,11 +159,11 @@ namespace AspNetCore.ExtDirect
                     var rv = await ProcessSingleBatchItemAsync(providerName, batchItem);
                     _result.Add(rv);
                 }
-                _transactionService.FireTransactionCommit(transactionId);
+                _batchService.FireBatchCommit(transactionId);
             }
             catch (Exception ex)
             {
-                _transactionService.FireTransactionRollback(transactionId, ex);
+                _batchService.FireBatchRollback(transactionId, ex);
                 throw;
             }
         }

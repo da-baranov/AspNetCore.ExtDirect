@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace AspNetCore.ExtDirect.Binders
 {
     /// <summary>
-    /// Converts Ext Direct JSON requests to an object
+    /// Converts an Ext Direct JSON request to an array of RemotingRequest (batch)
     /// </summary>
     internal sealed class ExtDirectRemotingRequestModelBinder : IModelBinder
     {

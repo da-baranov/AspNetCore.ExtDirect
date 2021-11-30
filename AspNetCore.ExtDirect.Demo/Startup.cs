@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -34,32 +35,38 @@ namespace AspNetCore.ExtDirect.Demo
 
             services.AddExtDirectRemotingApi(options =>
             {
-                options.Name = "CALCULATOR_API_1";
+                options.Name = options.Id = "CALCULATOR_API_1";
                 options.Namespace = "Calculator1";
                 options.AddHandler<CalculatorService>("Calculator");
             });
 
             services.AddExtDirectRemotingApi(options =>
             {
-                options.Name = "CALCULATOR_API_2";
+                options.Name = options.Id = "CALCULATOR_API_2";
                 options.Namespace = "Calculator2";
                 options.AddHandler<CalculatorService>("Calculator");
             });
 
             services.AddExtDirectPollingApi(options =>
             {
-                options.Name = "POLLING_DATA_API";
+                options.Name = options.Id = "POLLING_DATA_API";
                 options.AddHandler<DemoPollingHandler>((sender) => sender.GetEvents());
             });
             services.AddExtDirectPollingApi(options =>
             {
-                options.Name = "POLLING_CHAT_API";
+                options.Name = options.Id = "POLLING_CHAT_API";
                 options.AddHandler<DemoChatHandler>((sender) => sender.GetEvents());
             });
             services.AddExtDirectPollingApi(options =>
             {
-                options.Name = "POLLING_TEST_API";
+                options.Name = options.Id = "POLLING_TEST_API";
                 options.AddHandler<TestPollingHandler, Person>((sender, person) => sender.GetEvents(person));
+            });
+
+
+            services.AddDbContext<DemoDbContext>(options =>
+            {
+                options.UseSqlite("Data Source=Data/Demo.db");
             });
         }
 

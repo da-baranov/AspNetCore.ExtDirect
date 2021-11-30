@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect.Test
@@ -37,6 +38,16 @@ namespace AspNetCore.ExtDirect.Test
             var personName = new { Prefix = "Mr.", FirstName = "John", LastName = "Doe" };
             var rv = await _client.CallOrdered<string>("Demo", "makeName", personName);
             Assert.AreEqual(rv, $"{personName.Prefix} {personName.FirstName} {personName.LastName}".Trim());
+        }
+
+        [Test]
+        public async Task Test_InvalidRemotingRequest()
+        {
+            var r = await _client.PostAsync("/" + new ExtDirectOptions().RemotingEndpointUrl + "/REMOTING_API",
+                new StringContent("some-ill-formed-json <>", Encoding.UTF8, "application/json"));
+            var response = await r.Content.ReadAsStringAsync();
+            Assert.IsTrue(r.StatusCode == System.Net.HttpStatusCode.BadRequest);
+
         }
 
         [Test]

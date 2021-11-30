@@ -5,6 +5,12 @@
     data: {
         name: "John Doe",
 
+        calculator: {
+            operand1: 0,
+            operand2: 0,
+            sum: 0
+        },
+
         orderedArguments: {
             a: "Some string",
             b: 3.1415926,
@@ -23,7 +29,7 @@
             lastName: "Doe"
         },
 
-        pollingEnabled: false,
+        pollingEnabled: true,
 
         someRandomData: "2 * 2 = 4",
 

@@ -27,6 +27,11 @@ namespace AspNetCore.ExtDirect.Meta
         }
 
         /// <summary>
+        /// How often to poll the server-side in milliseconds. Defaults to every 3 seconds.
+        /// </summary>
+        public int? Interval { get; set; } = 3000;
+
+        /// <summary>
         /// The identifier for the Polling API Provider. This is useful when there are more than one API in use.
         /// </summary>
         public string Id { get; set; }

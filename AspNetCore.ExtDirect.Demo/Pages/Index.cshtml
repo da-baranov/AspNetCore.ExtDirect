@@ -15,34 +15,20 @@
         Ext.application({
             name: "ExtDirectDemo",
             quickTips: true,
-
+            // mainView: "ExtDirectDemo.view.Index",
             launch: function () {
-                // Add and immediately disable a polling provider
-                Ext.direct.Manager.addProvider({
-                    id: 'DemoPolling',
-                    type: 'polling',
-                    url: Ext.POLLING_DATA_API.url + "?firstName=John&lastName=Doe&address.country=USA&address.city=Boston",
-                    interval: 1000,
-                });
-                Ext.direct.Manager.getProvider('DemoPolling').disconnect();
-
-                // Add another polling provider
-                Ext.direct.Manager.addProvider({
-                    id: 'ChatPolling',
-                    type: 'polling',
-                    url: Ext.POLLING_CHAT_API.url + "?firstName=John&lastName=Doe&address.country=USA&address.city=Boston",
-                    interval: 1000,
-                });
+                // Add polling providers
+                Ext.direct.Manager.addProvider(Ext.POLLING_DATA_API);
+                Ext.direct.Manager.addProvider(Ext.POLLING_CHAT_API);
+                Ext.direct.Manager.addProvider(Ext.POLLING_TEST_API);
 
                 // Add remoting providers
                 Ext.direct.Manager.addProvider(Ext.REMOTING_API);
                 Ext.direct.Manager.addProvider(Ext.CALCULATOR_API_1);
                 Ext.direct.Manager.addProvider(Ext.CALCULATOR_API_2);
 
-                // Create main view
-                Ext.create("ExtDirectDemo.view.Index", {
-                    renderTo: Ext.getBody()
-                });
+                var mainView = Ext.create("ExtDirectDemo.view.Index");
+                mainView.renderTo(Ext.getBody());
             }
         });
     });

@@ -28,11 +28,10 @@ namespace AspNetCore.ExtDirect
             services.AddSingleton(options);
 
             // Repository
-            services.AddSingleton<ExtDirectHandlerRepository>(new ExtDirectHandlerRepository(services.BuildServiceProvider()));
+            services.AddSingleton(new ExtDirectHandlerRepository(services.BuildServiceProvider()));
 
-            // Transaction manager
-            services.AddScoped<IExtDirectTransactionService, ExtDirectTransactionService>(); // Public
-            services.AddScoped<ExtDirectTransactionService>(); // Internal
+            // Batch manager
+            services.AddScoped<IExtDirectBatchService, ExtDirectBatchService>(); // Public
 
             return services;
         }

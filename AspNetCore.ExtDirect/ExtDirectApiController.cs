@@ -58,6 +58,10 @@ namespace AspNetCore.ExtDirect
             [FromRoute] string providerName,
             [FromBody][ModelBinder(typeof(ExtDirectRemotingRequestModelBinder))] RemotingRequestBatch request)
         {
+            if (!ModelState.IsValid)
+            {
+                return new BadRequestObjectResult(ModelState);
+            }
             var handler = new ExtDirectRemotingHandler(_serviceProvider, providerName, request);
             var result = await handler.ExecuteAsync();
             return await Json(result);

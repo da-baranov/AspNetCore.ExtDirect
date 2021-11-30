@@ -20,10 +20,24 @@ namespace AspNetCore.ExtDirect
         /// </summary>
         public IReadOnlyDictionary<Type, string> HandlerTypes => _handlerTypes;
 
+
+        private string _id;
+
         /// <summary>
         /// The unique id of the provider. Default value is random UUID string.
         /// </summary>
-        public string Id { get; set; } = Utils.Util.Uuid();
+        public string Id 
+        { 
+            get
+            {
+                if (!string.IsNullOrWhiteSpace(_id)) return _id;
+                return Name;
+            }
+            set
+            {
+                _id = value;
+            }
+        }
 
         /// <summary>
         /// The unique name of the provider. Default value is "REMOTING_API"

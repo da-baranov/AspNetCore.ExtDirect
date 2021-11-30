@@ -15,20 +15,26 @@ namespace AspNetCore.ExtDirect.Demo
     /// </summary>
     public class DemoChatHandler
     {
-        private static int Id = 0;
+        private DemoDbContext _dbContext;
 
-        private static List<ChatMessage> Messages { get; } = new();
+        public DemoChatHandler(DemoDbContext dbContext)
+        {
+            _dbContext = dbContext;
+            _dbContext.Database.EnsureCreated();
+        }
 
         /// <summary>
         /// Polling request handler
         /// </summary>
         public IEnumerable<PollResponse> GetEvents()
         {
-            foreach (var message in Messages.Where(row => row.Read == false))
+            var messages = _dbContext.Messages.Where(row => row.Read == false);
+            foreach (var message in messages)
             {
                 message.Read = true;
                 yield return new PollResponse { Name = "onmessage", Data = message };
             }
+            _dbContext.SaveChanges();
         }
 
         /// <summary>
@@ -36,13 +42,14 @@ namespace AspNetCore.ExtDirect.Demo
         /// </summary>
         public void SendMessage(string message)
         {
-            Messages.Add(new ChatMessage
+            var newMessage = new ChatMessage
             {
-                Id = ++Id,
                 Date = DateTime.Now,
                 Message = message,
                 Read = false
-            });
+            };
+            _dbContext.Messages.Add(newMessage);
+            _dbContext.SaveChanges();
         }
     }
 
@@ -52,48 +59,37 @@ namespace AspNetCore.ExtDirect.Demo
 
         public CalculatorService(ILogger<CalculatorService> logger)
         {
-            this._logger = logger;
+            _logger = logger;
         }
 
-        public int Add(int a, int b)
+        public double Add(double a, double b)
         {
             _logger.LogInformation("Adding {0} and {1}", a, b);
             return a + b;
         }
 
-        public int Subtract(int a, int b)
+        public double Subtract(double a, double b)
         {
             _logger.LogInformation("Subtracting {0} and {1}", a, b);
             return a - b;
         }
     }
 
-    public class ChatMessage
-    {
-        public DateTime Date { get; set; }
-
-        public int Id { get; set; }
-
-        public string Message { get; set; }
-
-        internal bool Read { get; set; } = false;
-    }
-
     [ExtDirectAction("Demo")]
     public class DemoActionHandler
     {
-        private readonly IExtDirectTransactionService _transactionService;
+        private readonly IExtDirectBatchService _transactionService;
         private TransactionScope _transactionScope;
 
-        public DemoActionHandler(IExtDirectTransactionService transactionService)
+        public DemoActionHandler(IExtDirectBatchService transactionService)
         {
             // transaction service can be consumed via standard AspNet.Core DI as follows:
             _transactionService = transactionService;
-            _transactionService.TransactionBegin += (sender, e) =>
+            _transactionService.BatchBegin += (sender, e) =>
             {
                 _transactionScope = new TransactionScope();
             };
-            _transactionService.TransactionCommit += (sender, e) =>
+            _transactionService.BatchCommit += (sender, e) =>
             {
                 if (_transactionScope != null)
                 {
@@ -102,7 +98,7 @@ namespace AspNetCore.ExtDirect.Demo
                     _transactionScope = null;
                 }
             };
-            _transactionService.TransactionRollback += (sender, e) =>
+            _transactionService.BatchException += (sender, e) =>
             {
                 if (_transactionScope != null)
                 {
@@ -175,9 +171,9 @@ namespace AspNetCore.ExtDirect.Demo
             yield return new PollResponse { Name = "ondata", Data = data };
         }
     }
-
     public class Person
     {
+        public int Id { get; set; }
         public PersonAddress Address { get; set; }
         public string FirstName { get; set; }
         public string GivenName { get; set; }
@@ -196,12 +192,12 @@ namespace AspNetCore.ExtDirect.Demo
 
     public class TestHandler
     {
-        private readonly IExtDirectTransactionService _transactionService;
+        private readonly IExtDirectBatchService _transactionService;
 
-        public TestHandler(IExtDirectTransactionService transactionService)
+        public TestHandler(IExtDirectBatchService transactionService)
         {
             _transactionService = transactionService ?? throw new ArgumentNullException(nameof(transactionService));
-            _transactionService.TransactionRollback += (sender, e) =>
+            _transactionService.BatchException += (sender, e) =>
             {
             };
         }

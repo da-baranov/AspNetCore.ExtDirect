@@ -12,11 +12,25 @@ namespace AspNetCore.ExtDirect
     {
         private readonly Dictionary<Type, object> _handlerTypes = new();
 
+        /// <summary>
+        /// List of registered handlers
+        /// </summary>
         public IReadOnlyDictionary<Type, object> HandlerTypes => _handlerTypes;
 
+        /// <summary>
+        /// An identifier of the API is being registered. By default this is a random UUID 
+        /// </summary>
         public string Id { get; set; } = Utils.Util.Uuid();
 
+        /// <summary>
+        /// Gets or sets the name of the current API. This name should be unique within a web application.
+        /// </summary>
         public string Name { get; set; } = "POLLING_API";
+
+        /// <summary>
+        /// How often to poll the server-side in milliseconds. Defaults to every 3 seconds.
+        /// </summary>
+        public int? Interval { get; set; } = 3000;
 
         /// <summary>
         /// Registers a polling event sync handler that receives arguments of type T1 from query string

@@ -2,7 +2,7 @@
 
 This library implements [Ext Direct](https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html) specification for the Microsoft Asp.Net Core platform.
 
-We assume that you are familiar with Sencha ExtJS and have basic knowledge of Ext Direct. 
+The author assumes that you are familiar with Visual Studio, ASP.NET Core, Sencha ExtJS, and hope that you have basic knowledge of Ext Direct. 
 To learn more about Ext Direct RPC and Polling, please visit [Ext Direct Specification official page](https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html)
 
 Currently the library supports the following features of Ext Direct:
@@ -18,50 +18,58 @@ Consider using this a little bit outdated but still actual project [Ext.Direct f
 
 # How to start
 
-Currently, in pre-release, I have no plans to distribute the library as Nuget package, so please read the following instruction to setup the library manually:
+Currently, in pre-release, the author have no plans to distribute the library as Nuget package, so please read the following instruction to setup the library manually:
 
 1. Clone this repository
 
-2. Create a solution and then add to that solution a new AspNet Core Web Application project, or open your existing AspNet Core Web Application project
+2. Create a solution and then add to that solution a new AspNet Core Web Application project, or add your existing AspNet Core Web Application project
 
 3. Add the AspNetCore.ExtDirect to your Web Application Project as referenced project. Open project properties page and choose proper Target Framework on the Application tab (.NET 5.0, .NET 6.0, and so on)
 
-4. Upgrade Nuget package dependencies  
+4. Upgrade all the Nuget dependencies using Visual Studio built-in package manager
 
-5. Setup ExtJS client-side assets 
+5. Setup ExtJS client-side assets and create an ExtJS application on client-side
 
 6. Implement some Ext Direct remoting handler. This may be a class which has a method that accepts a few arguments, e.g.:
 
 ```csharp
 
-// Class that wraps named arguments
+// A class that wraps named arguments
 public class MultiplicationArguments
 {
     public int Multiplier { get;set; }
+
     public int Multiplicand { get;set; }
 }
 
 // Ext Direct Remoting handler
 public class CalculatorService
 {
-    // Constructor supports dependency injection
+    // Your Ext Direct remoting handler constructor can support dependency injection
     public CalculatorService(ILogger<CalculatorService> logger)
     {
     }
 
-    // Synchronous method, ordered arguments
+    // A synchronous method that accepts ordered arguments
     public int Add(int a, int b)
     {
         return a + b;
     }
 
-    // Asynchronous method, ordered arguments
+    // An asynchronous method that accepts ordered arguments
     public async Task<int> Subtract(int a, int b)
     {
         return await Task.FromResult(a - b);
     }
 
-    // Synchronous method, named arguments
+    // A public, but hidden method
+    [ExtDirectIgnore]
+    public string HiddenMethod()
+    {
+        return "I should not be called";
+    }
+
+    // A synchronous method that accepts named arguments
     [ExtDirectNamedArgs]
     public int Multiple(MultiplicationArguments args)
     {
@@ -78,8 +86,8 @@ Please note that the following features are supported:
 - Asynchronous operations
 - Dependency injection
 
-Please note that the library exposes to client all the public methods of your class. 
-If you want to hide a method, just make it private, protected or internal, or mark such a method with `[ExtDirectIgnore]` attribute.
+Please note that the library exposes to client all the public methods of your Ext Direct remoting handler. 
+If you want to hide a method, just make it private, protected or internal, or, alternatively, mark such a method with the `[ExtDirectIgnore]` attribute.
 
 7. Add another class that would act as an Ext Direct polling handler:
 
@@ -142,18 +150,18 @@ public class Startup
 ```
 
 
-9. By default, library middleware registers three special routes to handle Ext Direct requests:
+9. By default, the library middleware registers three special routes to handle Ext Direct requests:
 - `/ExtDirect.js` - this URL instructs client-side Ext Direct providers about available server-side endpoints - Actions, Methods and Event sources. You have to reference this URL on the client-side.
 - `/ExtDirect` - endpoint that handles incoming Ext Direct client-side requests
 - `/ExtDirectEvents` - endpoint for Ext Direct Polling provider
 
-10. Register remoting and polling providers on client side:
+10. Setup remoting and polling providers on client side:
 
 **Index.cshtml**
 
 ```html
 
-<script src="~/ExtDirect.js"></script>
+<script src="~/ExtDirect.js">/* Required */</script>
 
 <script>
 Ext.direct.Manager.addProvider(Ext.REMOTING_API);
@@ -323,8 +331,8 @@ public void ConfigureServices(IServiceCollection services)
 ## Passing arguments to Polling handlers
 
 The Ext Direct specification allows a developer to pass arguments (in a form of query string) to polling handlers. 
-This may be handy if your polling handler produces multiple type of events and you want to filter out some of those.
-Lets imagine your query string looks like `?eventName=ondata&skip=100&take=100`.
+This may be handy if your polling handler produces multiple type of events and you want to filter out some of those on client-side.
+Lets imagine that your filter query string looks like `?eventName=ondata&skip=100&take=100`.
 In ASP.NET Core such an URL can be mapped to a C# class with the following structure:
 
 ```csharp
@@ -414,8 +422,35 @@ CalculatorNS.Calculator.Add(1, 2, function(result) { console.log(result); });
 
 ```
 
+## Handling exceptions on client-side
 
+If you call some remote method and if an exception occurs on server-side, the library does not return HTTP error code but returns an exception object that can be handled by Ext Direct infrastructure on client-side:
 
+```javascript
+Calculator.add(2, 2, function (response, e) {
+    if (e.type === "exception") {
+        Ext.Msg.show(
+            {
+                title: "Error",
+                message: e.message,
+                icon: Ext.MessageBox.ERROR,
+                buttons: Ext.MessageBox.OK
+            }
+        );
+    } else {
+        Ext.Msg.alert("Success", response);
+    }
+});
+
+```
+
+## Batch transactions
+
+Ext Direct client-side RPC requests are packed in a batch. 
+If the whole batch should be processed within a transaction on server-side, the library 
+provides you with a service that notifies you about batch processing events.
+Such a service is implemented as a Scoped service and you can obtain an instance of that service via 
+dependency injection:
 
 
 

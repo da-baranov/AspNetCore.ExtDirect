@@ -2,11 +2,11 @@
 
 namespace AspNetCore.ExtDirect
 {
-    public sealed class ExtDirectTransactionEventArgs : EventArgs
+    public sealed class ExtDirectBatchEventArgs : EventArgs
     {
-        public ExtDirectTransactionEventArgs() { }
+        public ExtDirectBatchEventArgs() { }
 
-        public ExtDirectTransactionEventArgs(string transactionId)
+        public ExtDirectBatchEventArgs(string transactionId)
         {
             this.TransactionId = transactionId;
         }

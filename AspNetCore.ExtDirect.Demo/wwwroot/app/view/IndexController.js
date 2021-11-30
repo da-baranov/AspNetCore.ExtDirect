@@ -7,21 +7,26 @@
             beforerender: function () {
                 const viewModel = this.getViewModel();
 
-                const dataPollingProvider = Ext.direct.Manager.getProvider('DemoPolling');
-                
-                dataPollingProvider.on("data", function (provider, event) {
-                    if (event.name === "ondata") {
-                        viewModel.set("someRandomData", event.data);
-                    }
-                });
+                const dataPollingProvider = Ext.direct.Manager.getProvider("POLLING_DATA_API");
 
-                const chatPollingProvider = Ext.direct.Manager.getProvider('ChatPolling');
-                chatPollingProvider.on("data", function (provider, event) {
-                    if (event.name === "onmessage") {
-                        const store = viewModel.getStore("chat");
-                        store.add(event.data);
-                    }
-                });
+                if (dataPollingProvider) {
+                    dataPollingProvider.on("data", function (provider, event) {
+                        if (event.name === "ondata") {
+                            viewModel.set("someRandomData", event.data);
+                        }
+                    });
+                }
+
+                const chatPollingProvider = Ext.direct.Manager.getProvider("POLLING_CHAT_API");
+
+                if (chatPollingProvider != null) {
+                    chatPollingProvider.on("data", function (provider, event) {
+                        if (event.name === "onmessage") {
+                            const store = viewModel.getStore("chat");
+                            store.add(event.data);
+                        }
+                    });
+                }
             }
         },
 
@@ -33,7 +38,7 @@
                 pollingEnabled = !pollingEnabled;
                 viewModel.set("pollingEnabled", pollingEnabled);
 
-                const pollingProvider = Ext.direct.Manager.getProvider('DemoPolling');
+                const pollingProvider = Ext.direct.Manager.getProvider('POLLING_DATA_API');
 
                 if (pollingEnabled) {
                     pollingProvider.connect();
@@ -45,7 +50,10 @@
 
         "#cmdCalculate1": {
             click: function () {
-                Calculator1.Calculator.add(2, 2, function (response, e) {
+                const model = this.getViewModel();
+                const op1 = model.get("calculator.operand1");
+                const op2 = model.get("calculator.operand2");
+                Calculator1.Calculator.add(op1, op2, function (response, e) {
                     if (e.type === "exception") {
                         Ext.Msg.show(
                             {
@@ -56,7 +64,7 @@
                             }
                         );
                     } else {
-                        Ext.Msg.alert('AspNetCore.ExtDirect', response);
+                        model.set("calculator.sum", response);
                     }
                 });
             }
