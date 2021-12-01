@@ -1,11 +1,9 @@
 ﻿Ext.define("ExtDirectDemo.view.OrderedArgsExample", {
     extend: "Ext.panel.Panel",
     alias: "widget.OrderedArgsExample",
-    title: "Calling a remote function with ordered arguments",
     layout: {
         type: "vbox",
     },
-    padding: 10,
     items: [
         {
             xtype: "textfield",

@@ -20,7 +20,7 @@ namespace AspNetCore.ExtDirect.Test
             _factory = new DemoApplicationFactory();
             _client = _factory.CreateClient(new WebApplicationFactoryClientOptions
             {
-                BaseAddress = new System.Uri("http://localhost:10000/")
+                BaseAddress = new Uri("http://localhost:10000/")
             });
         }
 
@@ -44,7 +44,6 @@ namespace AspNetCore.ExtDirect.Test
         {
             var r = await _client.PostAsync("/" + new ExtDirectOptions().RemotingEndpointUrl + "/REMOTING_API",
                 new StringContent("some-ill-formed-json <>", Encoding.UTF8, "application/json"));
-            var response = await r.Content.ReadAsStringAsync();
             Assert.IsTrue(r.StatusCode == System.Net.HttpStatusCode.BadRequest);
 
         }
@@ -126,7 +125,7 @@ namespace AspNetCore.ExtDirect.Test
             {
                 Assert.Fail();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 Assert.Pass();
             }

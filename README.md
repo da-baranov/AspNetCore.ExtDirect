@@ -2,7 +2,8 @@
 
 This library implements [Ext Direct](https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html) specification for the Microsoft Asp.Net Core platform.
 
-The author assumes that you are familiar with Visual Studio, ASP.NET Core, Sencha ExtJS, and hope that you have basic knowledge of Ext Direct. 
+The author assumes that you are familiar with Visual Studio, ASP.NET Core, and Sencha ExtJS.
+Author also hopes that you have basic knowledge of Ext Direct. 
 To learn more about Ext Direct RPC and Polling, please visit [Ext Direct Specification official page](https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html)
 
 Currently the library supports the following features of Ext Direct:
@@ -424,7 +425,8 @@ CalculatorNS.Calculator.Add(1, 2, function(result) { console.log(result); });
 
 ## Handling exceptions on client-side
 
-If you call some remote method and if an exception occurs on server-side, the library does not return HTTP error code but returns an exception object that can be handled by Ext Direct infrastructure on client-side:
+If you call some remote method and if an exception occurs on server-side, the library does not return HTTP error code,
+but returns an exception object that can be handled by Ext Direct infrastructure on client-side:
 
 ```javascript
 Calculator.add(2, 2, function (response, e) {
@@ -443,14 +445,6 @@ Calculator.add(2, 2, function (response, e) {
 });
 
 ```
-
-## Batch transactions
-
-Ext Direct client-side RPC requests are packed in a batch. 
-If the whole batch should be processed within a transaction on server-side, the library 
-provides you with a service that notifies you about batch processing events.
-Such a service is implemented as a Scoped service and you can obtain an instance of that service via 
-dependency injection:
 
 
 

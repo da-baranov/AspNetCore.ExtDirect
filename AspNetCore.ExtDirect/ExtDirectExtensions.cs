@@ -94,7 +94,7 @@ namespace AspNetCore.ExtDirect
 
             app.UseEndpoints(endpoints =>
             {
-                var controllerName = nameof(ExtDirectApiController).Replace("Controller", "");
+                var controllerName = nameof(ExtDirectApiController).Replace("Controller", string.Empty);
 
                 // ExtDirect service descriptor (handles HTTP GET)
                 endpoints.MapControllerRoute(
@@ -105,13 +105,13 @@ namespace AspNetCore.ExtDirect
                 // Ext Direct remoting controller (handles HTTP POST)
                 endpoints.MapControllerRoute(
                     name: "ExtDirectRemoting",
-                    pattern: options.RemotingEndpointUrl + "/{providerName}",
+                    pattern: options.RemotingEndpointUrl + "/{providerId}",
                     defaults: new { controller = controllerName, action = nameof(ExtDirectApiController.OnAction) });
 
                 // Ext Direct polling controller (handles HTTP GET)
                 endpoints.MapControllerRoute(
                     name: "ExtDirectPolling",
-                    pattern: options.PollingEndpointUrl + "/{providerName}",
+                    pattern: options.PollingEndpointUrl + "/{providerId}",
                     defaults: new { controller = controllerName, action = nameof(ExtDirectApiController.OnEvents) });
             });
 

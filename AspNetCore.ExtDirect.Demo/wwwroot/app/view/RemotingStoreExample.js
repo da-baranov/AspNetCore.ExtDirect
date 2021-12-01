@@ -1,7 +1,6 @@
 ﻿Ext.define("ExtDirectDemo.view.RemotingStoreExample", {
     extend: "Ext.panel.Panel",
     alias: "widget.RemotingStoreExample",
-    title: "Remoting store example",
     layout: {
         type: "border"
     },
@@ -14,16 +13,20 @@
                 {
                     xtype: "button",
                     text: "Add...",
+                    iconCls: "fa fa-plus",
                     itemId: "cmdPersonsAdd"
                 },
                 {
                     xtype: "button",
-                    text: "Delete"
+                    text: "Delete",
+                    iconCls: "fa fa-minus",
+                    itemId: "cmdPersonsDelete"
                 },
                 {
                     xtype: "button",
                     text: "Refresh",
-                    itemId: "cmdPersonsRefresh"
+                    itemId: "cmdPersonsRefresh",
+                    iconCls: "fa fa-sync"
                 },
                 '-',
                 {
@@ -33,6 +36,7 @@
                 {
                     xtype: "textfield",
                     itemId: "txtPersonSearch",
+                    iconCls: "fa fa-search",
                     bind: {
                         value: "{personsView.filter}"
                     }
@@ -56,7 +60,8 @@
                 }
             ],
             bind: {
-                store: "{persons}"
+                store: "{persons}",
+                selection: "{personsView.selection}"
             }
         }
     ]

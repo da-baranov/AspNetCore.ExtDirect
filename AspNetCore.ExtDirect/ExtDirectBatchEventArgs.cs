@@ -4,15 +4,15 @@ namespace AspNetCore.ExtDirect
 {
     public sealed class ExtDirectBatchEventArgs : EventArgs
     {
-        public ExtDirectBatchEventArgs() { }
+        internal ExtDirectBatchEventArgs() { }
 
-        public ExtDirectBatchEventArgs(string transactionId)
+        internal ExtDirectBatchEventArgs(string batchId)
         {
-            this.TransactionId = transactionId;
+            BatchId = batchId;
         }
 
         public Exception Exception { get; internal set; }
 
-        public string TransactionId { get; private set; }
+        public string BatchId { get; private set; }
     }
 }

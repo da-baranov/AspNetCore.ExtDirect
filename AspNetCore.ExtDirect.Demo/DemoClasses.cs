@@ -205,7 +205,10 @@ namespace AspNetCore.ExtDirect.Demo
                                    row.FirstName.Contains(request.Filter) ||
                                    row.GivenName.Contains(request.Filter));
             }
-            return await q.OrderBy(row => row.LastName).ThenBy(row => row.FirstName).ToListAsync();
+            return await q
+                .OrderBy(row => row.LastName)
+                .ThenBy(row => row.FirstName)
+                .ToListAsync();
         }
 
         public async Task<List<int>> CreatePersons(List<Person> persons)
@@ -213,10 +216,32 @@ namespace AspNetCore.ExtDirect.Demo
             persons.ForEach((p) =>
             {
                 p.Id = 0;
+                if (string.IsNullOrWhiteSpace(p.LastName))
+                {
+                    throw new Exception("Last name is required");
+                }
+                if (string.IsNullOrWhiteSpace(p.FirstName))
+                {
+                    throw new Exception("First name is required");
+                }
             });
             _dbContext.Persons.AddRange(persons);
             await _dbContext.SaveChangesAsync();
             return persons.Select(row => row.Id).ToList();
+        }
+
+        public async Task<object> DeletePersons(List<Person> persons)
+        {
+            if (persons != null)
+            {
+                persons.ForEach((pd) =>
+                {
+                    var ep = _dbContext.Attach(pd);
+                    _dbContext.Remove(pd);
+                });
+            }
+            await _dbContext.SaveChangesAsync();
+            return new { Success = true };
         }
     }
 

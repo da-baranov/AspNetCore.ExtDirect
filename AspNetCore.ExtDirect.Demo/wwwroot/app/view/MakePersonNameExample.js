@@ -1,12 +1,10 @@
 ﻿Ext.define("ExtDirectDemo.view.MakePersonNameExample", {
     extend: "Ext.panel.Panel",
     alias: "widget.MakePersonNameExample",
-    title: "Make Person name example",
     layout: {
         type: "vbox",
         align: "stretch"
     },
-    padding: 10,
     items: [
         {
             xtype: "combobox",

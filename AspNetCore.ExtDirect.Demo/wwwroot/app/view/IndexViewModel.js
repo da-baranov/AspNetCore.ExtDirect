@@ -37,7 +37,8 @@
         chatMessage: null,
 
         personsView: {
-            filter: ""
+            filter: "",
+            selection: []
         }
     },
 
@@ -61,7 +62,7 @@
 
         persons: {
             autoLoad: true,
-            autoSync: true,
+            autoSync: false,
             model: "ExtDirectDemo.model.Person",
             proxy: {
                 type: "direct",
@@ -70,7 +71,8 @@
                 },
                 api: {
                     read: "Test.getPersons",
-                    create: "Test.createPersons"
+                    create: "Test.createPersons",
+                    destroy: "Test.deletePersons"
                 }
             }
         }

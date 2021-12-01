@@ -17,18 +17,18 @@ namespace AspNetCore.ExtDirect
     {
         private readonly IStringLocalizer _localizer;
         private readonly IStringLocalizerFactory _localizerFactory;
-        private readonly string _providerName;
+        private readonly string _providerId;
         private readonly ExtDirectHandlerRepository _repository;
         private readonly IServiceProvider _serviceProvider;
         private readonly ControllerContext _controllerContext;
 
         internal ExtDirectPollingHandler(IServiceProvider serviceProvider,
                                               ControllerContext controllerContext,
-                                              string providerName)
+                                              string providerId)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _controllerContext = controllerContext ?? throw new ArgumentNullException(nameof(controllerContext));
-            _providerName = !string.IsNullOrWhiteSpace(providerName) ? providerName : throw new ArgumentNullException(nameof(providerName));
+            _providerId = !string.IsNullOrWhiteSpace(providerId) ? providerId : throw new ArgumentNullException(nameof(providerId));
 
             _localizerFactory = serviceProvider.GetService<IStringLocalizerFactory>();
             _localizer = _localizerFactory.Create(typeof(Properties.Resources));
@@ -37,9 +37,9 @@ namespace AspNetCore.ExtDirect
 
         public async Task<IEnumerable<PollResponse>> ExecuteAsync()
         {
-            if (!_repository.PollingApis.TryGetValue(_providerName, out PollingApi pollingApi))
+            if (!_repository.PollingApis.TryGetValue(_providerId, out PollingApi pollingApi))
             {
-                throw new Exception(_localizer[nameof(Properties.Resources.ERR_CANNOT_FIND_POLLING_HANDLER), _providerName]);
+                throw new Exception(_localizer[nameof(Properties.Resources.ERR_CANNOT_FIND_API_BY_ID), _providerId]);
             }
 
             var result = new List<PollResponse>();

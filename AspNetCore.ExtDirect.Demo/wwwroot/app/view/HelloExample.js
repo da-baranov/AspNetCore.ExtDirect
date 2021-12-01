@@ -1,7 +1,6 @@
 ﻿Ext.define("ExtDirectDemo.view.HelloExample", {
     extend: "Ext.panel.Panel",
     alias: "widget.HelloExample",
-    title: "Hello example",
 
     layout: {
         type: "hbox"
@@ -19,7 +18,8 @@
         {
             xtype: "button",
             text: "Say hello",
-            itemId: "cmdHello"
+            itemId: "cmdHello",
+            iconCls: "fa fa-comment-alt"
         }
     ]
 });

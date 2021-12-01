@@ -1,11 +1,9 @@
 ﻿Ext.define("ExtDirectDemo.view.NamedArgsExample", {
     extend: "Ext.panel.Panel",
     alias: "widget.NamedArgsExample",
-    title: "Calling a remote function with named arguments",
     layout: {
         type: "vbox",
     },
-    padding: 10,
     items: [
         {
             xtype: "textfield",

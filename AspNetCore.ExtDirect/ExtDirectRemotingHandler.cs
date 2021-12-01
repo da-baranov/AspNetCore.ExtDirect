@@ -9,7 +9,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect
@@ -22,7 +21,7 @@ namespace AspNetCore.ExtDirect
         private readonly RemotingRequestBatch _batch;
         private readonly IStringLocalizer _localizer;
         private readonly IStringLocalizerFactory _localizerFactory;
-        private readonly string _providerName;
+        private readonly string _providerId;
         private readonly ExtDirectHandlerRepository _repository;
         private readonly IServiceProvider _serviceProvider;
         private readonly ExtDirectBatchService _batchService;
@@ -35,12 +34,12 @@ namespace AspNetCore.ExtDirect
         /// Constructs an instance of ExtDirectActionHandler
         /// </summary>
         /// <param name="serviceProvider">ASP.NET Core web application service provider</param>
-        /// <param name="providerName">Name of Ext Direct remoting provider</param>
+        /// <param name="providerId">Name of Ext Direct remoting provider</param>
         /// <param name="batch">Batch to be executed</param>
-        internal ExtDirectRemotingHandler(IServiceProvider serviceProvider, string providerName, RemotingRequestBatch batch)
+        internal ExtDirectRemotingHandler(IServiceProvider serviceProvider, string providerId, RemotingRequestBatch batch)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _providerName = providerName;
+            _providerId = providerId;
             _batch = batch ?? throw new ArgumentNullException(nameof(batch));
             _options = serviceProvider.GetRequiredService<ExtDirectOptions>();
             _repository = serviceProvider.GetService<ExtDirectHandlerRepository>();
@@ -59,7 +58,7 @@ namespace AspNetCore.ExtDirect
         internal async Task<List<RemotingResponseBase>> ExecuteAsync()
         {
             await ValidateBatchAsync();
-            await ProcessBatchAsync(_providerName);
+            await ProcessBatchAsync(_providerId);
             return _result;
         }
 
@@ -79,7 +78,7 @@ namespace AspNetCore.ExtDirect
                 {
                     var args = new List<object>();
 
-                    // There is no way to distinguish between an array that contains named arguments and array of objects passed by ExtJS store
+                    // There is no way to distinguish between an array that contains named arguments and array of objects sent by ExtJS store
                     // If methodInfo has exactly 1 parameter of type IEnumerable, the array must be handled as Store request
                     if (array.Count > 0
                         && array[0] is JObject
@@ -175,7 +174,7 @@ namespace AspNetCore.ExtDirect
         /// Executes Ext Direct batch
         /// </summary>
         /// <returns>Nothing</returns>
-        private async Task ProcessBatchAsync(string providerName)
+        private async Task ProcessBatchAsync(string providerId)
         {
             var transactionId = Util.Uuid();
             _batchService.FireBatchBegin(transactionId);
@@ -185,7 +184,7 @@ namespace AspNetCore.ExtDirect
                 _result = new List<RemotingResponseBase>();
                 foreach (var batchItem in _batch)
                 {
-                    var rv = await ProcessSingleBatchItemAsync(providerName, batchItem);
+                    var rv = await ProcessSingleBatchItemAsync(providerId, batchItem);
                     _result.Add(rv);
                 }
                 _batchService.FireBatchCommit(transactionId);
@@ -202,12 +201,12 @@ namespace AspNetCore.ExtDirect
         /// </summary>
         /// <param name="request"></param>
         /// <returns>RemotingResponse or RemotingException</returns>
-        private async Task<RemotingResponseBase> ProcessSingleBatchItemAsync(string providerName, RemotingRequest request)
+        private async Task<RemotingResponseBase> ProcessSingleBatchItemAsync(string providerId, RemotingRequest request)
         {
             try
             {
                 // Looking for an Action handler in repository
-                _repository.FindExtDirectActionAndMethod(providerName, request.Action, request.Method, out RemotingAction remotingAction, out RemotingMethod remotingMethod, out Type type, out MethodInfo methodInfo);
+                _repository.FindExtDirectActionAndMethod(providerId, request.Action, request.Method, out RemotingAction remotingAction, out RemotingMethod remotingMethod, out Type type, out MethodInfo methodInfo);
 
                 // Create an instance of handler service using DI
                 var instance = ActivatorUtilities.CreateInstance(_serviceProvider, type);

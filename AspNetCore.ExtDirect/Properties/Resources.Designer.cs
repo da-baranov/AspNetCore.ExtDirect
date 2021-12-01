@@ -61,11 +61,20 @@ namespace AspNetCore.ExtDirect.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to locate Polling events source provider &quot;{0}&quot;. Consider to check the Ext Direct services configuration..
+        ///   Looks up a localized string similar to Cannot find action &quot;{0}&quot; in provider with ID &quot;{1}&quot;.
         /// </summary>
-        internal static string ERR_CANNOT_FIND_POLLING_HANDLER {
+        internal static string ERR_ACTION_NOT_FOUND {
             get {
-                return ResourceManager.GetString("ERR_CANNOT_FIND_POLLING_HANDLER", resourceCulture);
+                return ResourceManager.GetString("ERR_ACTION_NOT_FOUND", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to locate Ext Direct service by ID &quot;{0}&quot;. Consider to check the Ext Direct services configuration..
+        /// </summary>
+        internal static string ERR_CANNOT_FIND_API_BY_ID {
+            get {
+                return ResourceManager.GetString("ERR_CANNOT_FIND_API_BY_ID", resourceCulture);
             }
         }
         
@@ -79,29 +88,38 @@ namespace AspNetCore.ExtDirect.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Name of Polling API provider being registered must be unique (&quot;{0}&quot;).
+        ///   Looks up a localized string similar to ID of API provider being registered must be unique (&quot;{0}&quot;).
         /// </summary>
-        internal static string ERR_DUPLICATE_POLLING_API_NAME {
+        internal static string ERR_DUPLICATE_API_ID {
             get {
-                return ResourceManager.GetString("ERR_DUPLICATE_POLLING_API_NAME", resourceCulture);
+                return ResourceManager.GetString("ERR_DUPLICATE_API_ID", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Name of Remoting API provider being registered must be unique (&quot;{0}&quot;).
+        ///   Looks up a localized string similar to Name of API provider being registered must be unique (&quot;{0}&quot;).
         /// </summary>
-        internal static string ERR_DUPLICATE_REMOTING_API_NAME {
+        internal static string ERR_DUPLICATE_API_NAME {
             get {
-                return ResourceManager.GetString("ERR_DUPLICATE_REMOTING_API_NAME", resourceCulture);
+                return ResourceManager.GetString("ERR_DUPLICATE_API_NAME", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid argument. Polling provider name is empty. Consider to check the Ext Direct services configuration..
+        ///   Looks up a localized string similar to Invalid argument. Provider ID should not be empty. Consider to check the Ext Direct services configuration..
         /// </summary>
-        internal static string ERR_EMPTY_POLLING_PROVIDER_NAME {
+        internal static string ERR_EMPTY_PROVIDER_ID {
             get {
-                return ResourceManager.GetString("ERR_EMPTY_POLLING_PROVIDER_NAME", resourceCulture);
+                return ResourceManager.GetString("ERR_EMPTY_PROVIDER_ID", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid argument. Provider name should not be empty. Consider to check the Ext Direct services configuration..
+        /// </summary>
+        internal static string ERR_EMPTY_PROVIDER_NAME {
+            get {
+                return ResourceManager.GetString("ERR_EMPTY_PROVIDER_NAME", resourceCulture);
             }
         }
         
@@ -165,6 +183,15 @@ namespace AspNetCore.ExtDirect.Properties {
         internal static string ERR_POLLING_HANDLER_TOO_MANY_PARAMETERS {
             get {
                 return ResourceManager.GetString("ERR_POLLING_HANDLER_TOO_MANY_PARAMETERS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot use Remoting provider with ID &quot;{0}&quot; as Polling provider and vice versa..
+        /// </summary>
+        internal static string ERR_WRONG_PROVIDER_TYPE {
+            get {
+                return ResourceManager.GetString("ERR_WRONG_PROVIDER_TYPE", resourceCulture);
             }
         }
     }

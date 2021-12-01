@@ -11,9 +11,6 @@ Ext.define("ExtDirectDemo.view.PersonForm", {
         align: "stretch"
     },
     bodyPadding: 10,
-    controller: {
-
-    },
     viewModel: {
         data: {
             person: {
@@ -50,8 +47,8 @@ Ext.define("ExtDirectDemo.view.PersonForm", {
         {
             text: "OK",
             handler: function () {
-                this.up("window").modalResult = "ok";
-                this.up("window").close();
+                var window = this.up("window");
+                window.fireEvent("ok", window, window.getViewModel().get("person"));
             }
         },
         {

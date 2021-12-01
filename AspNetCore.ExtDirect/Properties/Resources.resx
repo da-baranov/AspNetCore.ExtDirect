@@ -117,20 +117,26 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ERR_CANNOT_FIND_POLLING_HANDLER" xml:space="preserve">
-    <value>Failed to locate Polling events source provider "{0}". Consider to check the Ext Direct services configuration.</value>
+  <data name="ERR_ACTION_NOT_FOUND" xml:space="preserve">
+    <value>Cannot find action "{0}" in provider with ID "{1}"</value>
+  </data>
+  <data name="ERR_CANNOT_FIND_API_BY_ID" xml:space="preserve">
+    <value>Failed to locate Ext Direct service by ID "{0}". Consider to check the Ext Direct services configuration.</value>
   </data>
   <data name="ERR_DUPLICATE_ACTION" xml:space="preserve">
     <value>ExtDirect action with name "{0}" has already been registered. Action names should be unique.</value>
   </data>
-  <data name="ERR_DUPLICATE_POLLING_API_NAME" xml:space="preserve">
-    <value>Name of Polling API provider being registered must be unique ("{0}")</value>
+  <data name="ERR_DUPLICATE_API_ID" xml:space="preserve">
+    <value>ID of API provider being registered must be unique ("{0}")</value>
   </data>
-  <data name="ERR_DUPLICATE_REMOTING_API_NAME" xml:space="preserve">
-    <value>Name of Remoting API provider being registered must be unique ("{0}")</value>
+  <data name="ERR_DUPLICATE_API_NAME" xml:space="preserve">
+    <value>Name of API provider being registered must be unique ("{0}")</value>
   </data>
-  <data name="ERR_EMPTY_POLLING_PROVIDER_NAME" xml:space="preserve">
-    <value>Invalid argument. Polling provider name is empty. Consider to check the Ext Direct services configuration.</value>
+  <data name="ERR_EMPTY_PROVIDER_ID" xml:space="preserve">
+    <value>Invalid argument. Provider ID should not be empty. Consider to check the Ext Direct services configuration.</value>
+  </data>
+  <data name="ERR_EMPTY_PROVIDER_NAME" xml:space="preserve">
+    <value>Invalid argument. Provider name should not be empty. Consider to check the Ext Direct services configuration.</value>
   </data>
   <data name="ERR_INVALID_ARG_TYPE" xml:space="preserve">
     <value>Invalid type of input Ext Direct action method arguments (action: {0}, method: {1}, type of method arguments: {2}). Arguments should be of type javascript Array, javascript Object, or scalar value (string, number, bool, or Date)</value>
@@ -152,5 +158,8 @@
   </data>
   <data name="ERR_POLLING_HANDLER_TOO_MANY_PARAMETERS" xml:space="preserve">
     <value>Too many parameters </value>
+  </data>
+  <data name="ERR_WRONG_PROVIDER_TYPE" xml:space="preserve">
+    <value>Cannot use Remoting provider with ID "{0}" as Polling provider and vice versa.</value>
   </data>
 </root>

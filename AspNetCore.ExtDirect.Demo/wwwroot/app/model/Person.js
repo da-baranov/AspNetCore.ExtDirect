@@ -8,5 +8,11 @@
         "lastName",
         "firstName",
         "givenName"
-    ]
+    ],
+    proxy: {
+        type: "direct",
+        api: {
+            create: "Test.createPersons"
+        }
+    }
 });

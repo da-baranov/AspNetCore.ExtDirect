@@ -3,7 +3,7 @@
 namespace AspNetCore.ExtDirect.Attributes
 {
     /// <summary>
-    /// Tells a caller that this Method accepts named arguments
+    /// Specifies a remote method with named arguments
     /// </summary>
     /// <see href="https://docs.sencha.com/extjs/7.0.0/classic/Ext.direct.RemotingProvider.html"/>
     [AttributeUsage(AttributeTargets.Method)]

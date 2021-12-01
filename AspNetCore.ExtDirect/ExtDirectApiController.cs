@@ -1,8 +1,6 @@
 ﻿using AspNetCore.ExtDirect.Binders;
 using AspNetCore.ExtDirect.Meta;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
@@ -41,28 +39,32 @@ namespace AspNetCore.ExtDirect
         [Produces(ExtDirectConstants.CONTENT_TYPE_TEXT_JAVASCRIPT)]
         public async Task<IActionResult> Index()
         {
-            var result = _repository.ToApi(Url, _options);
+            var result = _repository.MakeJavaScriptApiDefinition(Url, _options);
             return await Task.FromResult(Content(result, ExtDirectConstants.CONTENT_TYPE_TEXT_JAVASCRIPT, Encoding.UTF8));
         }
 
         /// <summary>
         /// Handles client Ext Direct remoting requests
         /// </summary>
-        /// <param name="providerName"></param>
+        /// <param name="providerId"></param>
         /// <param name="request"></param>
         /// <see href="https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html"/>
         [AcceptVerbs("POST")]
         [Consumes(ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON, ExtDirectConstants.CONTENT_TYPE_TEXT_JSON, ExtDirectConstants.CONTENT_TYPE_TEXT_PLAIN)]
         [Produces(ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON)]
         public async Task<IActionResult> OnAction(
-            [FromRoute] string providerName,
+            [FromRoute] string providerId,
             [FromBody][ModelBinder(typeof(ExtDirectRemotingRequestModelBinder))] RemotingRequestBatch request)
         {
             if (!ModelState.IsValid)
             {
                 return new BadRequestObjectResult(ModelState);
             }
-            var handler = new ExtDirectRemotingHandler(_serviceProvider, providerName, request);
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                return new BadRequestObjectResult("Provider ID not specified");
+            }
+            var handler = new ExtDirectRemotingHandler(_serviceProvider, providerId, request);
             var result = await handler.ExecuteAsync();
             return await Json(result);
         }
@@ -70,13 +72,17 @@ namespace AspNetCore.ExtDirect
         /// <summary>
         /// Handles client Ext Direct polling requests
         /// </summary>
-        /// <param name="providerName"></param>
+        /// <param name="providerId"></param>
         /// <see href="https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html"/>
         [AcceptVerbs("GET")]
         [Produces(ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON)]
-        public async Task<IActionResult> OnEvents([FromRoute] string providerName)
+        public async Task<IActionResult> OnEvents([FromRoute] string providerId)
         {
-            var handler = new ExtDirectPollingHandler(_serviceProvider, ControllerContext, providerName);
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                return new BadRequestObjectResult("Provider ID not specified");
+            }
+            var handler = new ExtDirectPollingHandler(_serviceProvider, ControllerContext, providerId);
             var result = await handler.ExecuteAsync();
             return await Json(result);
         }

@@ -1,6 +1,5 @@
 ﻿Ext.define("ExtDirectDemo.view.Chat", {
     extend: "Ext.panel.Panel",
-    title: "Chat",
     alias: "widget.Chat",
     layout: {
         type: "border",
@@ -24,6 +23,7 @@
                 {
                     xtype: "button",
                     text: "Send",
+                    iconCls: "fa fa-envelope",
                     itemId: "cmdSendMessage"
                 }
             ],

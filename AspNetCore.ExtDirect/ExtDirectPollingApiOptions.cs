@@ -3,7 +3,6 @@ using FluentValidation;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect
@@ -34,6 +33,8 @@ namespace AspNetCore.ExtDirect
                 _id = value;
             }
         }
+
+        public string EventName { get; set; } = "ondata";
 
         /// <summary>
         /// Gets or sets the name of the current API. This name should be unique within a web application.

@@ -1,12 +1,10 @@
 ﻿Ext.define("ExtDirectDemo.view.CalculatorExample", {
     extend: "Ext.panel.Panel",
     alias: "widget.CalculatorExample",
-    title: "Calculator example",
     layout: {
         type: "vbox",
         align: "stretch"
     },
-    padding: 10,
     items: [
         {
             xtype: "numberfield",

@@ -1,5 +1,6 @@
 ﻿Ext.define("ExtDirectDemo.view.IndexController", {
     extend: "Ext.app.ViewController",
+    requires: "ExtDirectDemo.model.Person",
     alias: "controller.IndexController",
 
     control: {
@@ -205,11 +206,25 @@
             click: function () {
                 const store = this.getStore("persons");
                 const window = Ext.create("ExtDirectDemo.view.PersonForm");
-                window.on("close", function (sender) {
-                    if (sender.modalResult === "ok") {
-                        const person = sender.getViewModel().get("person");
-                        store.add(person);
-                    }
+                window.on("ok", function (sender, data) {
+                    const model = Ext.create("ExtDirectDemo.model.Person", data);
+                    model.save({
+                        success: function () {
+                            window.close();
+                            // store.reload();
+                        },
+                        failure: function (record, operation) {
+                            const errorMessage = operation.error;
+                            Ext.Msg.show(
+                                {
+                                    title: "Error",
+                                    message: errorMessage,
+                                    icon: Ext.MessageBox.ERROR,
+                                    buttons: Ext.MessageBox.OK
+                                }
+                            );
+                        }
+                    });
                 });
                 window.show();
             }
@@ -219,6 +234,17 @@
             click: function () {
                 const store = this.getStore("persons");
                 store.reload();
+            }
+        },
+
+        "#cmdPersonsDelete": {
+            click: function () {
+                var selection = this.getViewModel().get("personsView.selection");
+                if (selection) {
+                    const store = this.getStore("persons");
+                    store.remove(selection);
+                    store.sync();
+                }
             }
         },
 

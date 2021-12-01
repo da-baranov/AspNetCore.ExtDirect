@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -23,19 +24,78 @@ namespace AspNetCore.ExtDirect
 
         internal ExtDirectHandlerRepository(IServiceProvider services)
         {
-            _services = services
-                ?? throw new ArgumentNullException(nameof(services));
+            _services = services ?? throw new ArgumentNullException(nameof(services));
             _localizerFactory = _services.GetService<IStringLocalizerFactory>();
             _localizer = _localizerFactory.Create(typeof(Properties.Resources));
         }
 
-        // Provider name + polling handler type
-        internal Dictionary<string, PollingApi> PollingApis { get; private set; }
-            = new Dictionary<string, PollingApi>(StringComparer.InvariantCultureIgnoreCase);
+        // Provider ID + handler type
+        internal Dictionary<string, ApiBase> Apis { get; private set; } = new Dictionary<string, ApiBase>(StringComparer.InvariantCultureIgnoreCase);
 
-        // Provider name + list of remoting handler types
-        internal Dictionary<string, RemotingApi> RemotingApis { get; private set; }
-            = new Dictionary<string, RemotingApi>(StringComparer.InvariantCultureIgnoreCase);
+        internal Dictionary<string, PollingApi> PollingApis
+        {
+            get
+            {
+                var result = new Dictionary<string, PollingApi>();
+                foreach (var key in Apis.Keys)
+                {
+                    if (Apis[key] is PollingApi pollingApi)
+                    {
+                        result.Add(key, pollingApi);
+                    }
+                }
+                return result;
+            }
+        }
+
+        internal Dictionary<string, RemotingApi> RemotingApis
+        {
+            get
+            {
+                var result = new Dictionary<string, RemotingApi>();
+                foreach (var key in Apis.Keys)
+                {
+                    if (Apis[key] is RemotingApi remotingApi)
+                    {
+                        result.Add(key, remotingApi);
+                    }
+                }
+                return result;
+            }
+        }
+
+        internal void FindExtDirectActionAndMethod(string providerId,
+                                                   string actionName,
+                                                   string method,
+                                                   out RemotingAction remotingAction,
+                                                   out RemotingMethod remotingMethod,
+                                                   out Type type,
+                                                   out MethodInfo methodInfo)
+        {
+            type = null;
+            methodInfo = null;
+
+            if (!RemotingApis.TryGetValue(providerId, out RemotingApi remotingApi))
+            {
+                throw new Exception(_localizer[nameof(Properties.Resources.ERR_CANNOT_FIND_API_BY_ID), providerId]);
+            }
+
+            if (!remotingApi.Actions.TryGetValue(actionName, out RemotingAction ra))
+            {
+                throw new Exception(_localizer[nameof(Properties.Resources.ERR_ACTION_NOT_FOUND), actionName, providerId]);
+            }
+            remotingAction = ra;
+            type = remotingAction.ActionType;
+
+            var actionMethod = remotingAction[method];
+            remotingMethod = actionMethod ?? throw new InvalidOperationException(_localizer[nameof(Properties.Resources.ERR_NO_SUCH_METHOD), method]);
+
+            methodInfo = actionMethod.MethodInfo;
+            if (methodInfo.GetCustomAttribute<ExtDirectIgnoreAttribute>(false) != null)
+            {
+                throw new InvalidOperationException(_localizer[nameof(Properties.Resources.ERR_NO_SUCH_METHOD), method]);
+            }
+        }
 
         /// <summary>
         /// Registers and ExtDirect polling handler
@@ -43,13 +103,10 @@ namespace AspNetCore.ExtDirect
         /// <param name="options">Handler options</param>
         internal void RegisterPollingHandler(ExtDirectPollingApiOptions options)
         {
+            new ExtDirectPollingApiOptionsValidator().ValidateAndThrow(options);
             var pollingApi = new PollingApi(options);
-
-            if (PollingApis.ContainsKey(options.Name))
-            {
-                throw new Exception(_localizer[nameof(Properties.Resources.ERR_DUPLICATE_POLLING_API_NAME), options.Name]);
-            }
-            this.PollingApis.Add(pollingApi.Name, pollingApi);
+            ValidateProvider(pollingApi);
+            Apis.Add(pollingApi.Id, pollingApi);
         }
 
         /// <summary>
@@ -58,17 +115,10 @@ namespace AspNetCore.ExtDirect
         /// <param name="options">Handler options</param>
         internal void RegisterRemotingHandler(ExtDirectRemotingApiOptions options)
         {
-            // Validation
             new ExtDirectRemotingApiOptionsValidator().ValidateAndThrow(options);
-
-            // Saving for API
             var remotingApi = new RemotingApi(options);
-
-            if (RemotingApis.ContainsKey(options.Name))
-            {
-                throw new Exception(_localizer[nameof(Properties.Resources.ERR_DUPLICATE_REMOTING_API_NAME), options.Name]);
-            }
-            RemotingApis.Add(options.Name, remotingApi);
+            ValidateProvider(remotingApi);
+            Apis.Add(remotingApi.Id, remotingApi);
 
             foreach (var handlerType in options.HandlerTypes.Keys)
             {
@@ -88,48 +138,7 @@ namespace AspNetCore.ExtDirect
             }
         }
 
-        internal void FindExtDirectActionAndMethod(string providerName, string actionName, string method, out RemotingAction remotingAction, out RemotingMethod remotingMethod, out Type type, out MethodInfo methodInfo)
-        {
-            type = null;
-            methodInfo = null;
-
-            if (!RemotingApis.TryGetValue(providerName, out RemotingApi remotingApi))
-            {
-                throw new Exception($"Cannot find ExtDirect provider API handler by name provided (\"{providerName}\")");
-            }
-
-            if (!remotingApi.Actions.TryGetValue(actionName, out RemotingAction ra))
-            {
-                throw new Exception($"Cannot find action \"{actionName}\" within provider \"{providerName}\"");
-            }
-            remotingAction = ra;
-            type = remotingAction.ActionType;
-
-            var actionMethod = remotingAction[method];
-            if (actionMethod == null)
-            {
-                throw new InvalidOperationException(_localizer[nameof(Properties.Resources.ERR_NO_SUCH_METHOD), method]);
-            }
-            remotingMethod = actionMethod;
-
-            methodInfo = actionMethod.MethodInfo;
-            if (methodInfo.GetCustomAttribute<ExtDirectIgnoreAttribute>(false) != null)
-            {
-                throw new InvalidOperationException(_localizer[nameof(Properties.Resources.ERR_NO_SUCH_METHOD), method]);
-            }   
-        }
-
-        internal IEnumerable<RemotingApi> ToRemotingApi()
-        {
-            return RemotingApis.Values;
-        }
-
-        internal IEnumerable<PollingApi> ToPollingApi()
-        {
-            return PollingApis.Values;
-        }
-
-        internal string ToApi(IUrlHelper urlHelper, ExtDirectOptions options)
+        internal string MakeJavaScriptApiDefinition(IUrlHelper urlHelper, ExtDirectOptions options)
         {
             var script = new StringBuilder();
 
@@ -139,7 +148,7 @@ namespace AspNetCore.ExtDirect
             foreach (var remotingApi in ToRemotingApi())
             {
                 script.AppendLine($"Ext.{remotingApi.Name} = ");
-                remotingApi.Url = urlHelper.Content("~/" + options.RemotingEndpointUrl + "/" + remotingApi.Name);
+                remotingApi.Url = urlHelper.Content("~/" + options.RemotingEndpointUrl + "/" + remotingApi.Id);
                 script.Append(Util.JsonSerialize(remotingApi));
                 script.Append(';');
                 script.AppendLine();
@@ -150,7 +159,7 @@ namespace AspNetCore.ExtDirect
             foreach (var pollingApi in ToPollingApi())
             {
                 script.AppendLine($"Ext.{pollingApi.Name} = ");
-                pollingApi.Url = urlHelper.Content("~/" + options.PollingEndpointUrl + "/" + pollingApi.Name);
+                pollingApi.Url = urlHelper.Content("~/" + options.PollingEndpointUrl + "/" + pollingApi.Id);
                 script.Append(Util.JsonSerialize(pollingApi));
                 script.Append(';');
                 script.AppendLine();
@@ -158,6 +167,40 @@ namespace AspNetCore.ExtDirect
             }
 
             return script.ToString();
+        }
+
+        internal IEnumerable<PollingApi> ToPollingApi()
+        {
+            return Apis.Values.OfType<PollingApi>();
+        }
+
+        internal IEnumerable<RemotingApi> ToRemotingApi()
+        {
+            return Apis.Values.OfType<RemotingApi>();
+        }
+
+        internal void ValidateProvider(ApiBase api)
+        {
+            if (api == null)
+            {
+                throw new ArgumentNullException(nameof(api));
+            }
+            if (string.IsNullOrWhiteSpace(api.Id))
+            {
+                throw new Exception(_localizer[nameof(Properties.Resources.ERR_EMPTY_PROVIDER_ID)]);
+            }
+            if (string.IsNullOrWhiteSpace(api.Name))
+            {
+                throw new Exception(_localizer[nameof(Properties.Resources.ERR_EMPTY_PROVIDER_NAME)]);
+            }
+            if (Apis.ContainsKey(api.Id))
+            {
+                throw new Exception(_localizer[nameof(Properties.Resources.ERR_DUPLICATE_API_ID), api.Id]);
+            }
+            if (Apis.Values.Any(row => string.Equals(row.Name, api.Name, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                throw new Exception(_localizer[nameof(Properties.Resources.ERR_DUPLICATE_API_NAME), api.Name]);
+            }
         }
     }
 }

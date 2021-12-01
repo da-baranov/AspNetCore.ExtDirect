@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect.Meta
 {
-    public sealed class RemotingApi
+    public sealed class RemotingApi : ApiBase
     {
         public RemotingApi()
         {
@@ -22,22 +19,13 @@ namespace AspNetCore.ExtDirect.Meta
             Timeout = options.Timeout;
         }
 
-        internal string Name { get; set; }
-
-        /// <summary>
-        /// The identifier for the Remoting API Provider. This is useful when there are more than one API in use
-        /// </summary>
-        public string Id { get; set; }
-
         /// <summary>
         /// The Service URI for this API
         /// </summary>
         public string Url { get; set; }
 
-        /// <summary>
-        /// MUST be either remoting for Remoting API, or polling for Polling API
-        /// </summary>
-        public RemotingType Type { get; set; } = RemotingType.Remoting;
+        /// <inheritdoc/>
+        public override RemotingType Type => RemotingType.Remoting;
 
         /// <summary>
         /// The Namespace for the given Remoting API

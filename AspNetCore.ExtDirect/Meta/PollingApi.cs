@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AspNetCore.ExtDirect.Meta
 {
-    public sealed class PollingApi
+    public sealed class PollingApi : ApiBase
     {
         public PollingApi()
         {
@@ -32,14 +32,9 @@ namespace AspNetCore.ExtDirect.Meta
         public int? Interval { get; set; } = 3000;
 
         /// <summary>
-        /// The identifier for the Polling API Provider. This is useful when there are more than one API in use.
-        /// </summary>
-        public string Id { get; set; }
-
-        /// <summary>
         ///  MUST be "polling" for Polling API.
         /// </summary>
-        public RemotingType Type { get; } = RemotingType.Polling;
+        public override RemotingType Type => RemotingType.Polling;
 
         /// <summary>
         /// The Service URI for this API.
@@ -50,10 +45,5 @@ namespace AspNetCore.ExtDirect.Meta
         /// All the registered polling handler types
         /// </summary>
         internal Dictionary<Type, object> HandlerTypes { get; private set; } = new();
-
-        /// <summary>
-        /// The name for the Polling API Provider.
-        /// </summary>
-        internal string Name { get; set; }
     }
 }
