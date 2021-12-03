@@ -7,6 +7,7 @@
         "ExtDirectDemo.view.OrderedArgsExample",
         "ExtDirectDemo.view.NamedArgsExample",
         "ExtDirectDemo.view.MakePersonNameExample",
+        "ExtDirectDemo.view.FormExample",
         "ExtDirectDemo.view.Chat",
         "ExtDirectDemo.view.RandomPollingDataExample",
         "ExtDirectDemo.view.RemotingStoreExample"
@@ -51,12 +52,16 @@
             title: "<b>6. Random polling data example</b>",
         },
         {
+            xtype: "FormExample",
+            title: "<b>7. Form post/upload example</b>",
+        },
+        {
             xtype: "Chat",
-            title: "<b>7. Chat demo</b>"
+            title: "<b>8. Chat demo</b>"
         },
         {
             xtype: "RemotingStoreExample",
-            title: "<b>8. Working with a store that uses Ext Direct</b>",
+            title: "<b>9. Working with a store that uses Ext Direct</b>",
         }
     ]
 });

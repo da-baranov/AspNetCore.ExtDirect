@@ -10,8 +10,7 @@ Currently the library supports the following features of Ext Direct:
   * Remote function calls
   * Ordered and named arguments
   * Polling
-
-Form uploads are not implemented yet.
+  * Form POSTS and file uploads
 
 If you are restricted with .NET Framework 4.5-4.8, this library will not be helpful for you. 
 Consider using this a little bit outdated but still actual project [Ext.Direct for ASP.NET MVC](https://github.com/elishnevsky/ext-direct-mvc)
@@ -19,7 +18,7 @@ Consider using this a little bit outdated but still actual project [Ext.Direct f
 
 # How to start
 
-Currently, in pre-release, the author have no plans to distribute the library as Nuget package, so please read the following instruction to setup the library manually:
+In pre-release, the author have no plans to distribute the library as Nuget package, so please read the following instruction to setup the library manually:
 
 1. Clone this repository
 
@@ -29,7 +28,7 @@ Currently, in pre-release, the author have no plans to distribute the library as
 
 4. Upgrade all the Nuget dependencies using Visual Studio built-in package manager
 
-5. Setup ExtJS client-side assets and create an ExtJS application on client-side
+5. Setup ExtJS client-side assets and create an ExtJS client application
 
 6. Implement some Ext Direct remoting handler. This may be a class which has a method that accepts a few arguments, e.g.:
 
@@ -67,7 +66,7 @@ public class CalculatorService
     [ExtDirectIgnore]
     public string HiddenMethod()
     {
-        return "I should not be called";
+        return "This should never be called";
     }
 
     // A synchronous method that accepts named arguments
@@ -153,10 +152,10 @@ public class Startup
 
 9. By default, the library middleware registers three special routes to handle Ext Direct requests:
 - `/ExtDirect.js` - this URL instructs client-side Ext Direct providers about available server-side endpoints - Actions, Methods and Event sources. You have to reference this URL on the client-side.
-- `/ExtDirect` - endpoint that handles incoming Ext Direct client-side requests
-- `/ExtDirectEvents` - endpoint for Ext Direct Polling provider
+- `/ExtDirect/{providerId}` - endpoint that handles incoming Ext Direct client-side requests
+- `/ExtDirectEvents/{providerId}` - endpoint for Ext Direct Polling provider
 
-10. Setup remoting and polling providers on client side:
+10. Register remoting and polling providers on client side:
 
 **Index.cshtml**
 
@@ -180,11 +179,12 @@ Calculator.add(3, 4, function(response) {
 
 ```
 
-To see AspNetCore.ExtDirect in action, please take a look at the AspNetCore.ExtDirect.Demo web application project. It's a very simple single-page application that demonstrates basic library capabilities.
+To see AspNetCore.ExtDirect in action, please take a look at the AspNetCore.ExtDirect.Demo web application project. 
+It's a very simple single-page application that demonstrates basic library capabilities.
 
 # How to...
 
-## Changing default AspNetCore.ExtDirect endpoint URLs
+## Change default AspNetCore.ExtDirect endpoint URLs
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -196,17 +196,18 @@ public void ConfigureServices(IServiceCollection services)
        // This will register the following routes: 
        //
        // 1. http://localhost/MyExtDirectRemotingApi.js - for client javascript Ext Direct API
-       // 2. http://localhost/MyExtDirectRemotingApi/remoting/{remotingProviderName} - for handling Ext Direct remoting requests
-       // 3. http://localhost/MyExtDirectRemotingApi/polling/{pollingProviderName} - for handling Ext Direct polling requests
+       // 2. http://localhost/MyExtDirectRemotingApi/remoting/{remotingProviderId} - for handling Ext Direct remoting requests
+       // 3. http://localhost/MyExtDirectRemotingApi/polling/{pollingProviderId} - for handling Ext Direct polling requests
 
        options.Url = "MyExtDirectRemotingApi";
     });
 }
 ```
 
-## Configuring multiple Ext Direct APIs
+## Configure multiple Ext Direct APIs
 
-The library allows a developer to register multiple remoting and polling ExtDirect APIs. Please not that each API should have a unique name.
+The library allows a developer to register multiple remoting and polling ExtDirect APIs. 
+Please not that each API should have an unique ID and unique name.
 
 
 **Server (Startup.cs)**
@@ -225,7 +226,7 @@ public void ConfigureServices(IServiceCollection services)
     services.AddExtDirectRemotingApi(options =>
     {
         // This will create remoting handler endpoint at /extdirect/remoting/REMOTING_API_1
-        options.Name = "REMOTING_API_1";
+        options.Name = options.Id = "REMOTING_API_1";
         options.Namespace = "CalculatorNS1";
         options.AddHandler<CalculatorService>("Calculator");
     });
@@ -234,7 +235,7 @@ public void ConfigureServices(IServiceCollection services)
     services.AddExtDirectRemotingApi(options =>
     {
         // This will create another remoting handler endpoint at /extdirect/remoting/REMOTING_API_2
-        options.Name = "REMOTING_API_2";
+        options.Name = options.Id = "REMOTING_API_2";
         options.Namespace = "CalculatorNS2";
         options.AddHandler<CalculatorService>("Calculator");
     });
@@ -261,9 +262,9 @@ CalculatorNS2.Calculator.Add(3, 4, function(result) { console.log(result); });
 ```
 
 
-## Using Dependency Injection
+## Dependency Injection
 
-Your Ext Direct remoting and polling handlers can be implemented as services that reuse other ASP.NET Core web application services and receive dependencies in a typical way, via constructor:
+Ext Direct remoting and polling handlers can be implemented as services that reuse other ASP.NET Core web application services and receive dependencies in a typical way, via constructor:
 
 ```csharp
 public class DemoHandler
@@ -276,6 +277,8 @@ public class DemoHandler
     }
 }
 ```
+
+These services can be pretty useful to perform routine operations (logging, authorization, audit and so on).
 
 ## Using asynchronous methods
 
@@ -332,7 +335,7 @@ public void ConfigureServices(IServiceCollection services)
 ## Passing arguments to Polling handlers
 
 The Ext Direct specification allows a developer to pass arguments (in a form of query string) to polling handlers. 
-This may be handy if your polling handler produces multiple type of events and you want to filter out some of those on client-side.
+This may be handy if your polling handler produces multiple type of events and you want to filter out some of those on server-side.
 Lets imagine that your filter query string looks like `?eventName=ondata&skip=100&take=100`.
 In ASP.NET Core such an URL can be mapped to a C# class with the following structure:
 
@@ -359,7 +362,7 @@ public class PollingService
         return this
             .dbContext
             .Events
-            .Where(row => row.Name == filter.EventName)
+            .Where(row => row.Name == filter?.EventName)
             .Skip(filter.Skip)
             .Take(filter.Take)
             .Select(row => new PollResponse { Name = row.Name, Data = row.Data });

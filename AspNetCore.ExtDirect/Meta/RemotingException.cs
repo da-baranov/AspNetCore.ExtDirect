@@ -13,7 +13,7 @@ namespace AspNetCore.ExtDirect.Meta
     {
         public RemotingException()
         {
-
+            this.Success = false;
         }
 
         public RemotingException(RemotingRequest request, Exception ex)
@@ -23,6 +23,8 @@ namespace AspNetCore.ExtDirect.Meta
             this.Tid = request.Tid;
             this.Action = request.Action;
             this.Method = request.Method;
+            this.Success = false;
+            this.HasFileUploads = request.FormFiles != null && request.FormFiles.Count > 0;
         }
 
         public RemotingException(Exception ex, string action, string method, int tid)
@@ -33,6 +35,7 @@ namespace AspNetCore.ExtDirect.Meta
             this.Action = action;
             this.Method = method;
             this.Where = ex.StackTrace;
+            this.Success = false;
         }
 
         /// <summary>

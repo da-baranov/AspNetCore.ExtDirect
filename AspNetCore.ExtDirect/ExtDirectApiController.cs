@@ -2,6 +2,7 @@
 using AspNetCore.ExtDirect.Meta;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using Newtonsoft.Json;
 using System;
 using System.Text;
@@ -21,11 +22,14 @@ namespace AspNetCore.ExtDirect
         private readonly ExtDirectOptions _options;
         private readonly ExtDirectHandlerRepository _repository;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IStringLocalizerFactory _localizerFactory;
+        private readonly IStringLocalizer _stringLocalizer;
 
         public ExtDirectApiController(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-
+            _localizerFactory = serviceProvider.GetRequiredService<IStringLocalizerFactory>();
+            _stringLocalizer = _localizerFactory.Create(typeof(Properties.Resources));
             _options = serviceProvider.GetRequiredService<ExtDirectOptions>();
             _repository = serviceProvider.GetRequiredService<ExtDirectHandlerRepository>();
         }
@@ -50,11 +54,15 @@ namespace AspNetCore.ExtDirect
         /// <param name="request"></param>
         /// <see href="https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html"/>
         [AcceptVerbs("POST")]
-        [Consumes(ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON, ExtDirectConstants.CONTENT_TYPE_TEXT_JSON, ExtDirectConstants.CONTENT_TYPE_TEXT_PLAIN)]
-        [Produces(ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON)]
+        [Consumes(ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON, 
+                  ExtDirectConstants.CONTENT_TYPE_TEXT_JSON, 
+                  ExtDirectConstants.CONTENT_TYPE_TEXT_PLAIN,
+                  ExtDirectConstants.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED,
+                  ExtDirectConstants.CONTENT_TYPE_MULTIPART_FORM_DATA)
+        ]
         public async Task<IActionResult> OnAction(
-            [FromRoute] string providerId,
-            [FromBody][ModelBinder(typeof(ExtDirectRemotingRequestModelBinder))] RemotingRequestBatch request)
+            [FromBody][ModelBinder(typeof(ExtDirectRemotingRequestModelBinder))] RemotingRequestBatch request,
+            [FromRoute] string providerId = null)
         {
             if (!ModelState.IsValid)
             {
@@ -62,11 +70,38 @@ namespace AspNetCore.ExtDirect
             }
             if (string.IsNullOrWhiteSpace(providerId))
             {
-                return new BadRequestObjectResult("Provider ID not specified");
+                return new BadRequestObjectResult(_stringLocalizer[nameof(Properties.Resources.ERR_EMPTY_PROVIDER_ID)]);
             }
+
+            // Handles both Remoting requests and Form requests
             var handler = new ExtDirectRemotingHandler(_serviceProvider, providerId, request);
+
             var result = await handler.ExecuteAsync();
-            return await Json(result);
+
+            if (result.Count == 1 && result[0].FormHandler)
+            {
+                if (result[0].HasFileUploads)
+                {
+                    var html = string.Format(@"<!DOCTYPE html>
+                    <html>
+                        <head>
+                            <title>File upload response</title>
+                        </head>
+                        <body>
+                            <textarea>{0}</textarea>
+                        </body>
+                    </html>", Utils.Util.JsonSerialize(result[0]));
+                    return await Html(html);
+                }
+                else
+                {
+                    return await Json(result[0]);
+                }
+            }
+            else
+            {
+                return await Json(result);
+            }
         }
 
         /// <summary>
@@ -76,11 +111,11 @@ namespace AspNetCore.ExtDirect
         /// <see href="https://docs.sencha.com/extjs/7.0.0/guides/backend_connectors/direct/specification.html"/>
         [AcceptVerbs("GET")]
         [Produces(ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON)]
-        public async Task<IActionResult> OnEvents([FromRoute] string providerId)
+        public async Task<IActionResult> OnEvents([FromRoute] string providerId = null)
         {
             if (string.IsNullOrWhiteSpace(providerId))
             {
-                return new BadRequestObjectResult("Provider ID not specified");
+                return new BadRequestObjectResult(_stringLocalizer[nameof(Properties.Resources.ERR_EMPTY_PROVIDER_ID)]);
             }
             var handler = new ExtDirectPollingHandler(_serviceProvider, ControllerContext, providerId);
             var result = await handler.ExecuteAsync();
@@ -94,6 +129,12 @@ namespace AspNetCore.ExtDirect
         {
             var json = JsonConvert.SerializeObject(data, Utils.Util.DefaultSerializerSettings);
             var content = Content(json, ExtDirectConstants.CONTENT_TYPE_APPLICATION_JSON, Encoding.UTF8);
+            return await Task.FromResult(content);
+        }
+
+        private async Task<IActionResult> Html(string html)
+        {
+            var content = Content(html, ExtDirectConstants.CONTENT_TYPE_TEXT_HTML_UTF8);
             return await Task.FromResult(content);
         }
     }

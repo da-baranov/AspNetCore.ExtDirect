@@ -25,6 +25,12 @@ namespace AspNetCore.ExtDirect.Meta
             {
                 NamedArguments = true;
             }
+
+            var formSumbitAttr = methodInfo.GetCustomAttribute<ExtDirectFormSubmitAttribute>();
+            if (formSumbitAttr != null)
+            {
+                FormHandler = true;   
+            }
         }
 
         /// <summary>

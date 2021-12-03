@@ -142,7 +142,7 @@
     <value>Invalid type of input Ext Direct action method arguments (action: {0}, method: {1}, type of method arguments: {2}). Arguments should be of type javascript Array, javascript Object, or scalar value (string, number, bool, or Date)</value>
   </data>
   <data name="ERR_INVALID_EXT_REQUEST" xml:space="preserve">
-    <value>Invalid input JSON data. Expecting instance of Object or Array according Ext Direct Specification.</value>
+    <value>Invalid input JSON or multipart data. Expecting an instance of Object, or an Array, or a Form request according Ext Direct Specification.</value>
   </data>
   <data name="ERR_INVALID_JSON" xml:space="preserve">
     <value>Invalid JSON input data.</value>

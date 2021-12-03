@@ -36,7 +36,7 @@ namespace AspNetCore.ExtDirect
         {
             get
             {
-                var result = new Dictionary<string, PollingApi>();
+                var result = new Dictionary<string, PollingApi>(StringComparer.InvariantCultureIgnoreCase);
                 foreach (var key in Apis.Keys)
                 {
                     if (Apis[key] is PollingApi pollingApi)
@@ -52,7 +52,7 @@ namespace AspNetCore.ExtDirect
         {
             get
             {
-                var result = new Dictionary<string, RemotingApi>();
+                var result = new Dictionary<string, RemotingApi>(StringComparer.InvariantCultureIgnoreCase);
                 foreach (var key in Apis.Keys)
                 {
                     if (Apis[key] is RemotingApi remotingApi)

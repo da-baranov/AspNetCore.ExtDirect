@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,9 +39,21 @@ namespace AspNetCore.ExtDirect.Meta
         public object Data { get; set; }
 
         /// <summary>
+        /// Stringified Boolean value ("true" or "false") indicating that file uploads are attached to this form submission (for forms)
+        /// </summary>
+        public bool Upload { get; set; }
+
+        /// <summary>
         /// OPTIONAL set of meta-arguments to be made available to the called Remoting Method, if provided by the Client. If no metadata is associated with the call, this member MUST NOT be present in the Request.
         /// </summary>
         public List<RemotingMetadata> Metadata { get; } = new();
+
+        /// <summary>
+        /// Uploaded files
+        /// </summary>
+        public List<IFormFile> FormFiles { get; } = new();
+
+        internal bool FormHandler { get; set; }
     }
 
     public class RemotingRequestBatch: List<RemotingRequest>

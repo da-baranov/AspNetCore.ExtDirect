@@ -1,6 +1,7 @@
 ﻿using AspNetCore.ExtDirect.Attributes;
 using AspNetCore.ExtDirect.Meta;
 using AspNetCore.ExtDirect.Utils;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
@@ -73,94 +74,128 @@ namespace AspNetCore.ExtDirect
             {
                 var parameters = methodInfo.GetParameters();
 
-                // Ordered arguments
-                if (arguments is JArray array)
-                {
-                    var args = new List<object>();
-
-                    // There is no way to distinguish between an array that contains named arguments and array of objects sent by ExtJS store
-                    // If methodInfo has exactly 1 parameter of type IEnumerable, the array must be handled as Store request
-                    if (array.Count > 0
-                        && array[0] is JObject
-                        && parameters.Length == 1
-                        && typeof(IEnumerable).IsAssignableFrom(parameters[0].ParameterType))
-                    {
-                        var value = array.ToObject(parameters[0].ParameterType);
-                        args.Add(value);
-                    }
-                    else
-                    { 
-                        for (var i = 0; i < parameters.Length; i++)
-                        {
-                            if (i < array.Count)
-                            {
-                                var parameter = parameters[i];
-                                var parameterType = parameter.ParameterType;
-                                var value = array[i].ToObject(parameterType);
-                                args.Add(value);
-                            }
-                            else
-                            {
-                                args.Add(null);
-                            }
-                        }
-                    }
-                    return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
-                }
-
-                // Named arguments
-                else if (arguments is JObject jobject)
+                // Form POST/Upload handler?
+                if (remotingMethod.FormHandler)
                 {
                     var args = new List<object>();
                     for (var i = 0; i < parameters.Length; i++)
                     {
-                        var parameter = parameters[i];
-                        var parameterType = parameter.ParameterType;
-                        if (jobject.TryGetValue(parameter.Name, StringComparison.InvariantCultureIgnoreCase, out JToken jvalue))
+                        var parameterType = parameters[i].ParameterType;
+                        if (typeof(IEnumerable<IFormFile>).IsAssignableFrom(parameterType))
                         {
-                            args.Add(jvalue.ToObject(parameterType));
+                            args.Add(request.FormFiles);
                         }
                         else
                         {
-                            args.Add(null);
+                            if (arguments == null)
+                            {
+                                args.Add(null);
+                            }
+                            else if (arguments is JToken jtoken)
+                            {
+                                var arg = jtoken.ToObject(parameterType);
+                                args.Add(arg);
+                            }
+                            else
+                            {
+                                throw new Exception();
+                            }
                         }
                     }
                     return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
                 }
 
-                // Scalar?
-                else if (arguments is JToken jtoken)
+                else
                 {
-                    var args = new List<object>();
-                    if (parameters.Length > 0)
+                    // Ordered arguments
+                    if (arguments is JArray array)
                     {
+                        var args = new List<object>();
+
+                        // There is no way to distinguish between an array that contains named arguments and array of objects sent by ExtJS store
+                        // If methodInfo has exactly 1 parameter of type IEnumerable, the array must be handled as Store request
+                        if (array.Count > 0
+                            && array[0] is JObject
+                            && parameters.Length == 1
+                            && typeof(IEnumerable).IsAssignableFrom(parameters[0].ParameterType))
+                        {
+                            var value = array.ToObject(parameters[0].ParameterType);
+                            args.Add(value);
+                        }
+                        else
+                        {
+                            for (var i = 0; i < parameters.Length; i++)
+                            {
+                                if (i < array.Count)
+                                {
+                                    var parameter = parameters[i];
+                                    var parameterType = parameter.ParameterType;
+                                    var value = array[i].ToObject(parameterType);
+                                    args.Add(value);
+                                }
+                                else
+                                {
+                                    args.Add(null);
+                                }
+                            }
+                        }
+                        return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
+                    }
+
+                    // Named arguments
+                    else if (arguments is JObject jobject)
+                    {
+                        var args = new List<object>();
                         for (var i = 0; i < parameters.Length; i++)
                         {
-                            if (i == 0)
+                            var parameter = parameters[i];
+                            var parameterType = parameter.ParameterType;
+                            if (jobject.TryGetValue(parameter.Name, StringComparison.InvariantCultureIgnoreCase, out JToken jvalue))
                             {
-                                var parameter = parameters[i];
-                                var parameterType = parameter.ParameterType;
-                                var value = jtoken.ToObject(parameterType);
-                                args.Add(value);
+                                args.Add(jvalue.ToObject(parameterType));
                             }
                             else
                             {
                                 args.Add(null);
                             }
                         }
+                        return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
                     }
-                    return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
-                }
-                else if (request.Data == null)
-                {
-                    return await Util.InvokeSyncOrAsync(obj, methodInfo);
-                }
-                else
-                {
-                    throw new NotSupportedException(_localizer[nameof(Properties.Resources.ERR_INVALID_JSON),
-                            request.Action,
-                            request.Method,
-                            request.Data?.GetType()]);
+
+                    // Scalar?
+                    else if (arguments is JToken jtoken)
+                    {
+                        var args = new List<object>();
+                        if (parameters.Length > 0)
+                        {
+                            for (var i = 0; i < parameters.Length; i++)
+                            {
+                                if (i == 0)
+                                {
+                                    var parameter = parameters[i];
+                                    var parameterType = parameter.ParameterType;
+                                    var value = jtoken.ToObject(parameterType);
+                                    args.Add(value);
+                                }
+                                else
+                                {
+                                    args.Add(null);
+                                }
+                            }
+                        }
+                        return await Util.InvokeSyncOrAsync(obj, methodInfo, args.ToArray());
+                    }
+                    else if (request.Data == null)
+                    {
+                        return await Util.InvokeSyncOrAsync(obj, methodInfo);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException(_localizer[nameof(Properties.Resources.ERR_INVALID_JSON),
+                                request.Action,
+                                request.Method,
+                                request.Data?.GetType()]);
+                    }
                 }
             }
             catch (Exception ex)

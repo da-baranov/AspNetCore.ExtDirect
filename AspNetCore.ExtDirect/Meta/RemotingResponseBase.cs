@@ -16,5 +16,14 @@
         /// The transaction id for this Response. MUST be the same as in the original Request.
         /// </summary>
         public int Tid { get; set; }
+
+        /// <summary>
+        /// Not documented properly. Required for form POSTs.
+        /// </summary>
+        public bool Success { get; set; }
+
+        internal bool FormHandler { get; set; }
+
+        internal bool HasFileUploads { get; set; }
     }
 }

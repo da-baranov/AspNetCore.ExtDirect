@@ -133,7 +133,7 @@ namespace AspNetCore.ExtDirect.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid input JSON data. Expecting instance of Object or Array according Ext Direct Specification..
+        ///   Looks up a localized string similar to Invalid input JSON or multipart data. Expecting an instance of Object, or an Array, or a Form request according Ext Direct Specification..
         /// </summary>
         internal static string ERR_INVALID_EXT_REQUEST {
             get {

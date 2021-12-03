@@ -2,17 +2,20 @@
 {
     public class RemotingResponse : RemotingResponseBase
     {
-        public RemotingResponse()
+        internal RemotingResponse()
         {
-
+            this.Success = true;
         }
 
-        public RemotingResponse(RemotingRequest request, object result = null)
+        internal RemotingResponse(RemotingRequest request, object result = null)
         {
             this.Action = request.Action;
             this.Method = request.Method;
             this.Tid = request.Tid;
+            this.FormHandler = request.FormHandler;
             this.Result = result;
+            this.Success = true;
+            this.HasFileUploads = request.FormFiles != null && request.FormFiles.Count > 0;
         }
 
         /// <summary>

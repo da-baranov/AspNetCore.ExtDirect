@@ -1,5 +1,6 @@
 ﻿using AspNetCore.ExtDirect.Attributes;
 using AspNetCore.ExtDirect.Meta;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -242,6 +243,12 @@ namespace AspNetCore.ExtDirect.Demo
             }
             await _dbContext.SaveChangesAsync();
             return new { Success = true };
+        }
+
+        [ExtDirectFormSubmit]
+        public async Task<string> FormSubmit(Person person, List<IFormFile> files)
+        {
+            return await Task.FromResult("OK");
         }
     }
 
