@@ -6,19 +6,28 @@
             xtype: "textfield",
             name: "lastName",
             fieldLabel: "Last Name",
+            allowBlank: false
         },
         {
             xtype: "textfield",
             name: "firstName",
             fieldLabel: "First Name",
+            allowBlank: false
         },
         {
             xtype: "textfield",
             name: "givenName",
             fieldLabel: "Given Name",
+            allowBlank: false
         },
+        {
+            fieldLabel: "File",
+            xtype: "filefield",
+            name: "file1"
+        }
     ],
     height: 200,
+    standardSubmit: false,
     buttons: [
         {
             text: "Submit",
@@ -40,6 +49,6 @@
         },
     ],
     api: {
-        submit: "Test.formSubmit",
+        submit: "Test.formSubmit"
     },
 });

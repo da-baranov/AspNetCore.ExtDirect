@@ -104,6 +104,7 @@ namespace AspNetCore.ExtDirect
         internal void RegisterPollingHandler(ExtDirectPollingApiOptions options)
         {
             new ExtDirectPollingApiOptionsValidator().ValidateAndThrow(options);
+
             var pollingApi = new PollingApi(options);
             ValidateProvider(pollingApi);
             Apis.Add(pollingApi.Id, pollingApi);

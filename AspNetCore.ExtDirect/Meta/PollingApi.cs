@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AspNetCore.ExtDirect.Meta
 {
@@ -13,17 +14,7 @@ namespace AspNetCore.ExtDirect.Meta
         {
             Name = options.Name;
             Id = options.Id;
-            foreach (var key in options.HandlerTypes.Keys)
-            {
-                if (!HandlerTypes.ContainsKey(key))
-                {
-                    HandlerTypes.Add(key, options.HandlerTypes[key]);
-                }
-                else
-                {
-                    HandlerTypes[key] = options.HandlerTypes[key];
-                }
-            }
+            HandlerTypes.AddRange(options.Handlers.Distinct());
         }
 
         /// <summary>
@@ -44,6 +35,6 @@ namespace AspNetCore.ExtDirect.Meta
         /// <summary>
         /// All the registered polling handler types
         /// </summary>
-        internal Dictionary<Type, object> HandlerTypes { get; private set; } = new();
+        internal List<ExtDirectPollingHandlerRegistryItem> HandlerTypes { get; private set; } = new();
     }
 }

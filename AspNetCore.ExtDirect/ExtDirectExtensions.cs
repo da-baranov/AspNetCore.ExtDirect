@@ -37,10 +37,11 @@ namespace AspNetCore.ExtDirect
         }
 
         /// <summary>
-        /// Registers an Ext Direct polling API
+        /// Registers an Ext Direct event (polling) provider 
         /// </summary>
         /// <param name="services">The IServiceCollection to add services to</param>
         /// <param name="configure">An action to configure Ext Direct polling API options</param>
+        /// <remarks>There MAY be more than one Event Provider per Server; in that case each Event Provider MUST have a separate Service URI</remarks>
         /// <returns>A reference to this instance after the operation has completed</returns>
         public static IServiceCollection AddExtDirectPollingApi(
             this IServiceCollection services,
@@ -58,7 +59,7 @@ namespace AspNetCore.ExtDirect
         }
 
         /// <summary>
-        /// Registers an Ext Direct remoting API
+        /// Registers an Ext Direct remoting handler
         /// </summary>
         /// <param name="services">The IServiceCollection to add services to</param>
         /// <param name="configure">An action to configure Ext Direct Remoting API options</param>

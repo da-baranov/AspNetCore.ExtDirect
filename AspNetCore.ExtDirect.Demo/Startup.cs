@@ -54,17 +54,17 @@ namespace AspNetCore.ExtDirect.Demo
             services.AddExtDirectPollingApi(options =>
             {
                 options.Name = "POLLING_DATA_API";
-                options.AddHandler<PollingService>((sender) => sender.GetEvents());
+                options.AddHandler<PollingService>((sender) => sender.GetEvents(), "ondata");
             });
             services.AddExtDirectPollingApi(options =>
             {
                 options.Name = "POLLING_CHAT_API";
-                options.AddHandler<RemotingChatService>((sender) => sender.GetEvents());
+                options.AddHandler<RemotingChatService>((sender) => sender.GetEvents(), "onmessage");
             });
             services.AddExtDirectPollingApi(options =>
             {
                 options.Name = "POLLING_TEST_API";
-                options.AddHandler<TestPollingHandler, Person>((sender, person) => sender.GetEvents(person));
+                options.AddHandler<TestPollingHandler, Person>((sender, person) => sender.GetEvents(person), "ondata");
             });
 
             //

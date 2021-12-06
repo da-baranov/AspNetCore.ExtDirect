@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -28,7 +29,7 @@ namespace AspNetCore.ExtDirect.Demo
         /// <summary>
         /// Polling request handler
         /// </summary>
-        public IEnumerable<PollResponse> GetEvents()
+        public IEnumerable<ChatMessage> GetEvents()
         {
             var messages = _dbContext
                 .Messages
@@ -36,7 +37,7 @@ namespace AspNetCore.ExtDirect.Demo
             foreach (var message in messages)
             {
                 message.Read = true;
-                yield return new PollResponse { Name = "onmessage", Data = message };
+                yield return message;
             }
             _dbContext.SaveChanges();
         }
@@ -99,7 +100,7 @@ namespace AspNetCore.ExtDirect.Demo
 
     public class PollingService
     {
-        public IEnumerable<PollResponse> GetEvents()
+        public IEnumerable<dynamic> GetEvents()
         {
             var r = new Random();
 
@@ -107,7 +108,7 @@ namespace AspNetCore.ExtDirect.Demo
             var b = Convert.ToInt32(r.NextDouble() * 10000);
             BigInteger c = a * b;
             var data = $"{a} * {b} = {c}";
-            yield return new PollResponse { Name = "ondata", Data = data };
+            yield return data;
         }
     }
     public class Person
@@ -261,12 +262,12 @@ namespace AspNetCore.ExtDirect.Demo
 
     public class TestPollingHandler
     {
-        public async Task<IEnumerable<PollResponse>> GetEvents(Person testPerson)
+        public async Task<IEnumerable> GetEvents(Person testPerson)
         {
-            var result = new List<PollResponse>();
+            var result = new List<int>();
             for (var i = 0; i < 1000; i++)
             {
-                result.Add(new PollResponse { Name = "ondata", Data = "i = " + i });
+                result.Add(i);
             }
             return await Task.FromResult(result);
         }

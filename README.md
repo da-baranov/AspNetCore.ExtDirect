@@ -95,11 +95,12 @@ If you want to hide a method, just make it private, protected or internal, or, a
 
 public class PollingService 
 {
-    public IEnumerable<PollResponse>() GetEvents() 
+    // Return whatever that implements the IEnumerable interface
+    public IEnumerable GetEvents() 
     {
        for (var i = 0; i < 100; i++) 
        {
-           yield return new RollResponse { Name = "onevent", Data = i };
+           yield return i;
        }
     }
 }
@@ -134,7 +135,7 @@ public class Startup
         // Register Ext Direct polling handlers
         services.AddExtDirectPollingApi(options =>
         {
-            options.AddHandler<PollingService>((sender) => sender.GetEvents());
+            options.AddHandler<PollingService>((sender) => sender.GetEvents(), "ondata");
         });
         ...
     }
@@ -306,9 +307,9 @@ public class CalculatorService
 
 public class PollingService
 {
-    public async Task<IEnumerable<PollResponse>> GetEvents(Filter filter)
+    public async Task<IEnumerable> GetEvents(Filter filter)
     {
-        var list = new List<PollResponse>();
+        var list = new List<string>();
         // Populate the list
         return await Task.FromResult(list);
     }
@@ -325,7 +326,7 @@ public void ConfigureServices(IServiceCollection services)
 
     services.AddExtDirectPollingApi(options =>
     {
-        options.AddHandler<PollingService, Filter>((sender, filter) => sender.GetEvents(filter));
+        options.AddHandler<PollingService, Filter>((sender, filter) => sender.GetEvents(filter), "onevent");
     });
 }
 
@@ -357,7 +358,7 @@ Simply use a special overriden configuration method:
 
 public class PollingService
 {
-    public IEnumerable<PollResponse> GetEvents(PollingEventFilter filter)
+    public IEnumerable GetEvents(PollingEventFilter filter)
     {
         return this
             .dbContext
@@ -365,7 +366,7 @@ public class PollingService
             .Where(row => row.Name == filter?.EventName)
             .Skip(filter.Skip)
             .Take(filter.Take)
-            .Select(row => new PollResponse { Name = row.Name, Data = row.Data });
+            .Select(row => row.Data);
     }
 }
 
@@ -380,7 +381,7 @@ public void ConfigureServices(IServiceCollection services)
 
     services.AddExtDirectPollingApi(options =>
     {
-        options.AddHandler<PollingService, PollingEventFilter>((sender, args) => sender.GetEvents(args));
+        options.AddHandler<PollingService, PollingEventFilter>((sender, args) => sender.GetEvents(args), "ondata");
     }
 }
 

@@ -211,7 +211,7 @@
                     model.save({
                         success: function () {
                             window.close();
-                            // store.reload();
+                            store.reload();
                         },
                         failure: function (record, operation) {
                             const errorMessage = operation.error;
