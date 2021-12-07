@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace AspNetCore.ExtDirect.Meta
+﻿namespace AspNetCore.ExtDirect.Meta
 {
-    public abstract class ApiBase
+    internal abstract class ApiBase
     {
         /// <summary>
         /// The identifier for the API Provider. This is useful when there are more than one API in use. Should be unique within a web application

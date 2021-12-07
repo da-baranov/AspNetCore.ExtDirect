@@ -1,6 +1,6 @@
 ﻿namespace AspNetCore.ExtDirect.Meta
 {
-    public class RemotingResponse : RemotingResponseBase
+    internal sealed class RemotingResponse : RemotingResponseBase
     {
         internal RemotingResponse()
         {

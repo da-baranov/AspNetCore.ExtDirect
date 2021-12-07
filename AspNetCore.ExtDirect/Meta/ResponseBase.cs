@@ -1,6 +1,6 @@
 ﻿namespace AspNetCore.ExtDirect.Meta
 {
-    public abstract class ResponseBase
+    internal abstract class ResponseBase
     {
         public abstract string Type { get; }
     }

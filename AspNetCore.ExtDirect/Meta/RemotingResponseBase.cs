@@ -1,6 +1,6 @@
 ﻿namespace AspNetCore.ExtDirect.Meta
 {
-    public abstract class RemotingResponseBase : ResponseBase
+    internal abstract class RemotingResponseBase : ResponseBase
     {
         /// <summary>
         /// The Action to which the invoked Method belongs to. MUST be the same as in the original Request.

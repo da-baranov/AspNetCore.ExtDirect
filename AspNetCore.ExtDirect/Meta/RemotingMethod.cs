@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace AspNetCore.ExtDirect.Meta
 {
-    public sealed class RemotingMethod
+    internal sealed class RemotingMethod
     {
         public RemotingMethod()
         {

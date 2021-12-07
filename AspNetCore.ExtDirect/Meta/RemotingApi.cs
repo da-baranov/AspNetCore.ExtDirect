@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AspNetCore.ExtDirect.Meta
 {
-    public sealed class RemotingApi : ApiBase
+    internal sealed class RemotingApi : ApiBase
     {
         public RemotingApi()
         {

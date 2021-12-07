@@ -56,7 +56,7 @@ namespace AspNetCore.ExtDirect.Meta
         internal bool FormHandler { get; set; }
     }
 
-    public class RemotingRequestBatch: List<RemotingRequest>
+    public sealed class RemotingRequestBatch: List<RemotingRequest>
     {
 
     }

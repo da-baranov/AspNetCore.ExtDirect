@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace AspNetCore.ExtDirect.Meta
 {
-    public sealed class PollingApi : ApiBase
+    internal sealed class PollingApi : ApiBase
     {
         public PollingApi()
         {

@@ -18,7 +18,7 @@ Consider using this a little bit outdated but still actual project [Ext.Direct f
 
 # How to start
 
-In pre-release, the author have no plans to distribute the library as Nuget package, so please read the following instruction to setup the library manually:
+In pre-release, the author has no plans to distribute the library as Nuget package, so please read the following instruction to setup the library manually:
 
 1. Clone this repository
 

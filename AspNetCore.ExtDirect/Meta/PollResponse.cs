@@ -1,6 +1,6 @@
 ﻿namespace AspNetCore.ExtDirect.Meta
 {
-    public class PollResponse : ResponseBase
+    internal sealed class PollResponse : ResponseBase
     {
         /// <summary>
         /// MUST be a string "event"

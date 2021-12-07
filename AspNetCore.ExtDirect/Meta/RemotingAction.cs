@@ -9,9 +9,9 @@ namespace AspNetCore.ExtDirect.Meta
     /// <summary>
     /// Array of Objects that represent Methods
     /// </summary>
-    public sealed class RemotingAction : List<RemotingMethod>
+    internal sealed class RemotingAction : List<RemotingMethod>
     {
-        public RemotingAction()
+        internal RemotingAction()
         {
         }
 

@@ -9,7 +9,7 @@ namespace AspNetCore.ExtDirect.Meta
     /// <summary>
     /// An Ext Direct exception
     /// </summary>
-    public sealed class RemotingException : RemotingResponseBase
+    internal sealed class RemotingException : RemotingResponseBase
     {
         public RemotingException()
         {
