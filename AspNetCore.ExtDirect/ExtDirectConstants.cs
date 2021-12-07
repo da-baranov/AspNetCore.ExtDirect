@@ -1,6 +1,6 @@
 ﻿namespace AspNetCore.ExtDirect
 {
-    internal class ExtDirectConstants
+    internal sealed class ExtDirectConstants
     {
         public const string CONTENT_TYPE_APPLICATION_JSON = "application/json";
         public const string CONTENT_TYPE_APPLICATION_JSON_UTF8 = "application/json;charset=UTF-8";

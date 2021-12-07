@@ -2,7 +2,7 @@
 
 namespace AspNetCore.ExtDirect.Attributes
 {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Method)]
     public sealed class ExtDirectEventNameAttribute : Attribute
     {
         /// <summary>
@@ -13,7 +13,7 @@ namespace AspNetCore.ExtDirect.Attributes
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="eventName">The action name</param>
+        /// <param name="eventName">The name of the event</param>
         public ExtDirectEventNameAttribute(string eventName = null)
         {
             EventName = eventName;

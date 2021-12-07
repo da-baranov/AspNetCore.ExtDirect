@@ -100,7 +100,7 @@ namespace AspNetCore.ExtDirect
             RuleFor(row => row.Name)
                 .NotNull()
                 .NotEmpty()
-                .Must(id => provider.IsValidIdentifier(id))
+                .Must(name => provider.IsValidIdentifier(name))
                 .WithMessage(opts => string.Format(Properties.Resources.ERR_INVALID_PROVIDER_NAME, opts.Name));
 
             RuleFor(row => row.Id)

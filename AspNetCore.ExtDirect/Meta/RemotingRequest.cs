@@ -1,10 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json.Linq;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AspNetCore.ExtDirect.Meta
 {
@@ -56,8 +51,7 @@ namespace AspNetCore.ExtDirect.Meta
         internal bool FormHandler { get; set; }
     }
 
-    public sealed class RemotingRequestBatch: List<RemotingRequest>
+    public sealed class RemotingRequestBatch : List<RemotingRequest>
     {
-
     }
 }

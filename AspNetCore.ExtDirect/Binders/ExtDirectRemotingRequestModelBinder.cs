@@ -118,7 +118,7 @@ namespace AspNetCore.ExtDirect.Binders
                     // Form upload?
                     if (!string.IsNullOrWhiteSpace(formUpload))
                     {
-                        request.Upload = formUpload == "true";
+                        request.Upload = (formUpload == "true");
                     }
 
                     // Files

@@ -50,11 +50,12 @@ namespace AspNetCore.ExtDirect
         internal IReadOnlyList<ExtDirectPollingHandlerRegistryItem> Handlers => _handlers;
 
         /// <summary>
-        /// Registers a polling event sync handler that receives arguments of type T1 from query string
+        /// Registers a synchronous polling event handler that receives arguments from query string
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="T1"></typeparam>
-        /// <param name="func"></param>
+        /// <typeparam name="T">Type of class that implements this handler</typeparam>
+        /// <typeparam name="T1">Type of argument</typeparam>
+        /// <param name="func">A Func<T, IEnumerable> to process </param>
+        /// <param name="eventName">The name of the event. If not set, default value "ondata" will be used.</param>
         public void AddHandler<T, T1>(Func<T, IEnumerable> func, string eventName = null)
             where T : class
             where T1 : class
@@ -63,21 +64,35 @@ namespace AspNetCore.ExtDirect
         }
 
         /// <summary>
-        /// Registers a polling event sync handler with no arguments
+        /// Registers a synchronous polling event handler that receives no arguments
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="func"></param>
+        /// <param name="eventName">The name of the event. If not set, default value "ondata" will be used.</param>
         public void AddHandler<T>(Func<T, IEnumerable> func, string eventName = null)
             where T : class
         {
             AddHandler(typeof(T), func, func.Method, null, eventName, true);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="func"></param>
+        /// <param name="eventName"></param>
         public void AddHandler<T>(Func<T, Task<IEnumerable>> func, string eventName = null)
         {
             AddHandler(typeof(T), func, func.Method, null, eventName, false);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T1"></typeparam>
+        /// <param name="func"></param>
+        /// <param name="eventName"></param>
         public void AddHandler<T, T1>(Func<T, T1, Task<IEnumerable>> func, string eventName = null)
         {
             AddHandler(typeof(T), func, func.Method, typeof(T1), eventName, true);
@@ -131,7 +146,7 @@ namespace AspNetCore.ExtDirect
             RuleFor(row => row.Name)
                 .NotNull()
                 .NotEmpty()
-                .Must(id => provider.IsValidIdentifier(id))
+                .Must(name => provider.IsValidIdentifier(name))
                 .WithMessage(opts => string.Format(Properties.Resources.ERR_INVALID_PROVIDER_NAME, opts.Name));
 
             RuleFor(row => row.Id)

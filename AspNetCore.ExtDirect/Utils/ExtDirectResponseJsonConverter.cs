@@ -18,7 +18,7 @@ namespace AspNetCore.ExtDirect.Utils
             {
                 JObject jsonObject = JObject.Load(reader);
 
-                if (jsonObject.Property("type")?.Value is JValue jv && jv.Value is String type)
+                if (jsonObject.Property("type")?.Value is JValue jv && jv.Value is string type)
                 {
                     if (type == "rpc")
                     {
