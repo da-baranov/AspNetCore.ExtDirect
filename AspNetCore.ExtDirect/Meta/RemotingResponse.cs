@@ -4,7 +4,6 @@
     {
         internal RemotingResponse()
         {
-            this.Success = true;
         }
 
         internal RemotingResponse(RemotingRequest request, object result = null)
@@ -14,7 +13,6 @@
             this.Tid = request.Tid;
             this.FormHandler = request.FormHandler;
             this.Result = result;
-            this.Success = true;
             this.HasFileUploads = request.FormFiles != null && request.FormFiles.Count > 0;
         }
 

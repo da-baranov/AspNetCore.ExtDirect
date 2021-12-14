@@ -60,9 +60,11 @@ namespace AspNetCore.ExtDirect
                   ExtDirectConstants.CONTENT_TYPE_APPLICATION_X_WWW_FORM_URLENCODED,
                   ExtDirectConstants.CONTENT_TYPE_MULTIPART_FORM_DATA)
         ]
-        public async Task<IActionResult> OnAction(
+        public async Task<IActionResult> OnAction
+        (
             [FromBody][ModelBinder(typeof(ExtDirectRemotingRequestModelBinder))] RemotingRequestBatch request,
-            [FromRoute] string providerId = null)
+            [FromRoute] string providerId = null
+        )
         {
             if (!ModelState.IsValid)
             {
@@ -74,14 +76,27 @@ namespace AspNetCore.ExtDirect
             }
 
             // Handles both Remoting requests and Form requests
-            var handler = new ExtDirectRemotingHandler(_serviceProvider, providerId, request);
+            var handler = new ExtDirectRemotingHandler(_serviceProvider, providerId);
 
-            var result = await handler.ExecuteAsync();
+            var result = await handler.ExecuteAsync(request);
 
-            if (result.Count == 1 && result[0].FormHandler)
+            // Form POST request?
+            if (result.Count == 1 && true == result[0].FormHandler)
             {
-                if (result[0].HasFileUploads)
+                if (result[0] is RemotingException remotingException)
                 {
+                    remotingException.Result = new { Success = false, Message = remotingException.Message };
+                    return await Json(remotingException);
+                }
+
+                var remotingResponse = (RemotingResponse)result[0];
+                dynamic tmp = remotingResponse.Result;
+                remotingResponse.Result = new { Success = true, Result = tmp };
+
+                // Form POST request has files?
+                if (remotingResponse.HasFileUploads)
+                {
+                    var json = Utils.Util.JsonSerialize(remotingResponse);
                     var html = string.Format(@"<!DOCTYPE html>
                     <html>
                         <head>
@@ -90,18 +105,16 @@ namespace AspNetCore.ExtDirect
                         <body>
                             <textarea>{0}</textarea>
                         </body>
-                    </html>", Utils.Util.JsonSerialize(result[0]));
+                    </html>", json);
                     return await Html(html);
                 }
-                else
-                {
-                    return await Json(result[0]);
-                }
+
+                // Form POST request without files
+                return await Json(remotingResponse);
             }
-            else
-            {
-                return await Json(result);
-            }
+
+            // Usual request
+            return await Json(result);
         }
 
         /// <summary>

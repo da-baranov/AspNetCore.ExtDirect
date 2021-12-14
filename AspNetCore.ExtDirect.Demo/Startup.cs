@@ -64,7 +64,7 @@ namespace AspNetCore.ExtDirect.Demo
             services.AddExtDirectPollingApi(options =>
             {
                 options.Name = "POLLING_TEST_API";
-                options.AddHandler<TestPollingHandler, Person>((sender, person) => sender.GetEvents(person), "ondata");
+                options.AddHandler<PollingTestHandler, Person>((sender, person) => sender.GetEvents(person), "ondata");
             });
 
             //

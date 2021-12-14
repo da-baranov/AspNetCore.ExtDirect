@@ -18,7 +18,6 @@ namespace AspNetCore.ExtDirect
     /// </summary>
     internal sealed class ExtDirectRemotingHandler
     {
-        private readonly RemotingRequestBatch _batch;
         private readonly IStringLocalizer _localizer;
         private readonly IStringLocalizerFactory _localizerFactory;
         private readonly string _providerId;
@@ -27,7 +26,6 @@ namespace AspNetCore.ExtDirect
         private readonly ExtDirectBatchService _batchService;
         private readonly ExtDirectOptions _options;
         private readonly ILogger<ExtDirectRemotingHandler> _logger;
-        private List<RemotingResponseBase> _result;
 
 
         /// <summary>
@@ -36,11 +34,10 @@ namespace AspNetCore.ExtDirect
         /// <param name="serviceProvider">ASP.NET Core web application service provider</param>
         /// <param name="providerId">Name of Ext Direct remoting provider</param>
         /// <param name="batch">Batch to be executed</param>
-        internal ExtDirectRemotingHandler(IServiceProvider serviceProvider, string providerId, RemotingRequestBatch batch)
+        internal ExtDirectRemotingHandler(IServiceProvider serviceProvider, string providerId)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _providerId = providerId;
-            _batch = batch ?? throw new ArgumentNullException(nameof(batch));
             _options = serviceProvider.GetRequiredService<ExtDirectOptions>();
             _repository = serviceProvider.GetService<ExtDirectHandlerRepository>();
             _logger = serviceProvider.GetService<ILogger<ExtDirectRemotingHandler>>();
@@ -54,12 +51,11 @@ namespace AspNetCore.ExtDirect
         /// <summary>
         /// Executes the Ext Direct batch passed as constructor argument
         /// </summary>
-        /// <returns></returns>
-        internal async Task<List<RemotingResponseBase>> ExecuteAsync()
+        /// <returns>List of RemotingResponse/RemotingException</returns>
+        internal async Task<List<RemotingResponseBase>> ExecuteAsync(RemotingRequestBatch batch)
         {
-            await ValidateBatchAsync();
-            await ProcessBatchAsync(_providerId);
-            return _result;
+            await ValidateBatchAsync(batch);
+            return await ProcessBatchAsync(_providerId, batch);
         }
 
         private async Task<object> InvokeAsync(RemotingRequest request,       // Batch item
@@ -208,25 +204,62 @@ namespace AspNetCore.ExtDirect
         /// Executes Ext Direct batch
         /// </summary>
         /// <returns>Nothing</returns>
-        private async Task ProcessBatchAsync(string providerId)
+        private async Task<List<RemotingResponseBase>> ProcessBatchAsync(string providerId, RemotingRequestBatch batch)
         {
             var transactionId = Util.Uuid();
             _batchService.FireBatchBegin(transactionId);
 
             try
             {
-                _result = new List<RemotingResponseBase>();
-                foreach (var batchItem in _batch)
+                var result = new List<RemotingResponseBase>();
+                foreach (var batchItem in batch)
                 {
                     var rv = await ProcessSingleBatchItemAsync(providerId, batchItem);
-                    _result.Add(rv);
+                    result.Add(rv);
                 }
                 _batchService.FireBatchCommit(transactionId);
+                return await Task.FromResult(result);
             }
             catch (Exception ex)
             {
                 _batchService.FireBatchRollback(transactionId, ex);
                 throw;
+            }
+        }
+
+        // ??? https://student.ku.ac.th/history/ext-4.0-beta1/docs/api/Ext.form.action.DirectSubmit.html
+        // On exception, form handler should receive not an Exception but normal Response,
+        // that contains property Result,
+        // that contains property Success of type boolean
+        // Example:
+        // { type: "rpc", result: { success: false }}
+        // Also form handler expects a single error (fault) object, not an array
+        private RemotingResponseBase MakeFault(Exception ex, RemotingRequest request)
+        {
+            if (ex is TargetInvocationException tex)
+            {
+                // Form handler
+                if (tex.InnerException != null)
+                {
+                    var fault = new RemotingException(request, tex.InnerException);
+                    if (_options.Debug == false) fault.Where = null;
+                    return fault;
+                }
+                else
+                {
+                    var fault = new RemotingException(request, tex);
+                    if (_options.Debug == false) fault.Where = null;
+                    return fault;
+                }
+            }
+            else
+            {
+                var fault = new RemotingException(ex, request.Action, request.Method, request.Tid)
+                {
+                    FormHandler = request.FormHandler
+                };
+                if (_options.Debug == false) fault.Where = null;
+                return fault;
             }
         }
 
@@ -251,37 +284,21 @@ namespace AspNetCore.ExtDirect
                 var response = new RemotingResponse(request, data);
                 return await Task.FromResult(response);
             }
-            catch (TargetInvocationException tex)
-            {
-                if (tex.InnerException != null)
-                {
-                    var ex = new RemotingException(request, tex.InnerException);
-                    if (_options.Debug == false) ex.Where = null;
-                    return await Task.FromResult(ex);
-                }
-                else
-                {
-                    var ex = new RemotingException(request, tex);
-                    if (_options.Debug == false) ex.Where = null;
-                    return await Task.FromResult(ex);
-                }
-            }
             catch (Exception ex)
             {
-                var exception = new RemotingException(ex, request.Action, request.Method, request.Tid);
-                if (_options.Debug == false) exception.Where = null;
-                return await Task.FromResult(exception);
+                var fault = MakeFault(ex, request);
+                return await Task.FromResult(fault);
             }
         }
 
         /// <summary>
-        /// Performs simple batch validation
+        /// Performs some simple batch validation
         /// </summary>
         /// <returns></returns>
-        private async Task ValidateBatchAsync()
+        private async Task ValidateBatchAsync(RemotingRequestBatch batch)
         {
             var validator = new RemotingRequestValidator();
-            foreach (var batchItem in _batch)
+            foreach (var batchItem in batch)
             {
                 await validator.ValidateAsync(batchItem);
             }

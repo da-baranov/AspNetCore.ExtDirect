@@ -17,11 +17,6 @@
         /// </summary>
         public int Tid { get; set; }
 
-        /// <summary>
-        /// Not documented properly. Required for Ext Direct form POST responses.
-        /// </summary>
-        public bool Success { get; set; }
-
         internal bool FormHandler { get; set; }
 
         internal bool HasFileUploads { get; set; }

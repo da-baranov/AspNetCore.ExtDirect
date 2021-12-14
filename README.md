@@ -37,9 +37,9 @@ In pre-release, the author has no plans to distribute the library as Nuget packa
 // A class that wraps named arguments
 public class MultiplicationArguments
 {
-    public int Multiplier { get;set; }
+    public double Multiplier { get;set; }
 
-    public int Multiplicand { get;set; }
+    public double Multiplicand { get;set; }
 }
 
 // Ext Direct Remoting handler
@@ -51,13 +51,13 @@ public class CalculatorService
     }
 
     // A synchronous method that accepts ordered arguments
-    public int Add(int a, int b)
+    public double Add(double a, double b)
     {
         return a + b;
     }
 
     // An asynchronous method that accepts ordered arguments
-    public async Task<int> Subtract(int a, int b)
+    public async Task<double> Subtract(double a, double b)
     {
         return await Task.FromResult(a - b);
     }
@@ -71,7 +71,7 @@ public class CalculatorService
 
     // A synchronous method that accepts named arguments
     [ExtDirectNamedArgs]
-    public int Multiple(MultiplicationArguments args)
+    public double Multiple(MultiplicationArguments args)
     {
         return args.Multiplier * args.Multiplicand;
     }
@@ -291,12 +291,12 @@ Ext Direct **Remoting** and **Polling** handler methods can be either synchronou
 
 public class CalculatorService
 {
-    public int Add(int a, int b)
+    public double Add(double a, double b)
     {
         return a + b;
     }
 
-    public async Task<int> AddAsync(int a, int b)
+    public async Task<double> AddAsync(double a, double b)
     {
         var result = a + b;
         return await Task.FromResult(result);
